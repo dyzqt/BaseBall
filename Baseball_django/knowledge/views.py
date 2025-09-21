@@ -1,17 +1,13 @@
 from django.shortcuts import render
-
-# Create your views here.
 from django.http import JsonResponse
 from .models import Article
 
-#主页
+# 新增：主页视图（对应 urls.py 中的 home 导入）
 def home(request):
-    return render(request, 'home.html')  # 需确保模板文件存在
-def article_list(request):
-    articles = Article.objects.all().values("id", "title", "content", "created_at")
-    # data = [
-    #     {"id": 1, "title": "棒球规则基础", "content": "棒球是一项...", "created_at": "2025-09-21"},
-    #     {"id": 2, "title": "投手与击球手", "content": "投手是...", "created_at": "2025-09-20"},
-    # ]
-    return JsonResponse(list(articles), safe=False)# safe=False 允许返回列表
+    return render(request, "home.html")  # 渲染主页模板
 
+# 文章列表视图（保持不变，确保 urls.py 中 article_list 导入有效）
+def article_list(request):
+    # 确保查询包含所有需要显示的字段
+    articles = Article.objects.all().values("id", "title", "content", "created_at")
+    return JsonResponse(list(articles), safe=False)

@@ -1,41 +1,28 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="UTF-8">
-  <title>棒球知识库</title>
-  <!-- Vue 2 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-  <!-- Axios -->
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-</head>
-<body>
-  <div id="app">
-    <h1>⚾ 棒球知识库</h1>
-    <ul>
-      <li v-for="article in articles" :key="article.id">
-        <h3>{{ article.title }}</h3>
-        <p>{{ article.content }}</p>
-        <small>{{ article.created_at }}</small>
-      </li>
-    </ul>
-  </div>
+<div id="app">
+  <h1>棒球知识库</h1>
+  <ul>
+    <li v-for="article in articles" :key="article.id">
+      <h2>[[ article.title ]]</h2>
+      <p>[[ article.content ]]</p>
+    </li>
+  </ul>
+</div>
 
-  <script>
-    new Vue({
-      el: "#app",
-      data: {
-        articles: []
-      },
-      created() {
-        axios.get("/articles/")  // 直接请求 Django API
-          .then(res => {
-            this.articles = res.data
-          })
-          .catch(err => {
-            console.error("加载文章失败:", err)
-          })
-      }
-    })
-  </script>
-</body>
-</html>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    delimiters: ['[[', ']]'],   // 👈 改插值符号
+    data: {
+      articles: []
+    },
+    created() {
+      fetch('/articles/')
+        .then(res => res.json())
+        .then(data => {
+          this.articles = data;
+          console.log("文章数量:", this.articles.length);
+        });
+    }
+  })
+</script>
