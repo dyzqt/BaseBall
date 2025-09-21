@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>棒球知识库</title>
+  <!-- Vue 2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>⚾ 棒球知识库</h1>
+    <ul>
+      <li v-for="article in articles" :key="article.id">
+        <h3>{{ article.title }}</h3>
+        <p>{{ article.content }}</p>
+        <small>{{ article.created_at }}</small>
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    new Vue({
+      el: "#app",
+      data: {
+        articles: []
+      },
+      created() {
+        axios.get("/articles/")  // 直接请求 Django API
+          .then(res => {
+            this.articles = res.data
+          })
+          .catch(err => {
+            console.error("加载文章失败:", err)
+          })
+      }
+    })
+  </script>
+</body>
+</html>

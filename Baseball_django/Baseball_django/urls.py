@@ -17,7 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from knowledge.views import article_list, home
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path('admin/', admin.site.urls),
+    path('articles/', article_list),  # 获取文章列表
+    path('', home, name='home'),  # 主页
 ]
