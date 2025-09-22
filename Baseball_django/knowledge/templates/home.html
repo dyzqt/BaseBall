@@ -13,7 +13,17 @@
         <!-- 顶部导航栏 -->
         <header class="bg-blue-600 text-white shadow-md">
             <div class="container mx-auto px-4">
-                <div class="flex space-x-6 py-4 text-lg">
+                <div class="flex space-x-6 py-4 text-lg items-center">
+                    <!-- Logo图片 - 点击返回首页 -->
+                    <div class="mr-auto flex items-center space-x-2">
+                        <img
+                            src="/static/XK_log.jpg"
+                            alt="Logo"
+                            class="h-10 cursor-pointer hover:opacity-90 transition-opacity duration-200"
+                            @click="selectTab('首页')"
+                        >
+                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer">棒球知识库</p>
+                    </div>
                     <button v-for="tab in tabs" :key="tab"
                             @click="selectTab(tab)"
                             class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700"
@@ -24,7 +34,7 @@
             </div>
         </header>
 
-        <!-- 主要内容区域 -->
+        <!-- 主要内容区域 - 保持不变 -->
         <div class="flex flex-1 overflow-hidden">
             <!-- 左侧文章列表 (非首页显示) -->
             <aside v-if="activeTab !== '首页'" class="w-64 bg-white border-r border-gray-200 overflow-y-auto">
