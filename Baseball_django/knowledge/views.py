@@ -1,7 +1,8 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Article
 from django.db.models import Q
+# 添加缺少的render导入
+from django.shortcuts import render
 
 
 # 主页视图

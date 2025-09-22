@@ -1,8 +1,9 @@
-from django.contrib import admin
 from django.urls import path
 from knowledge.views import article_list, home, articles_by_category, article_detail
 from django.conf import settings
 from django.conf.urls.static import static
+# 添加缺少的admin导入
+from django.contrib import admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +13,5 @@ urlpatterns = [
     path('', home, name='home'),  # 主页
 ]
 # 配置媒体文件和静态文件服务
-# 配置媒体文件服务 - 只保留媒体文件配置
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
