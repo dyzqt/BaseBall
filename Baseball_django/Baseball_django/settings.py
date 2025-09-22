@@ -124,3 +124,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # 允许所有前端访问（开发阶段）
 CORS_ALLOW_ALL_ORIGINS = True
+
+# 添加媒体文件配置
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

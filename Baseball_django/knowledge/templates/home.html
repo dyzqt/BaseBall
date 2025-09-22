@@ -1,28 +1,167 @@
-<div id="app">
-  <h1>棒球知识库</h1>
-  <ul>
-    <li v-for="article in articles" :key="article.id">
-      <h2>[[ article.title ]]</h2>
-      <p>[[ article.content ]]</p>
-    </li>
-  </ul>
-</div>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>棒球知识库</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div id="app" class="h-screen flex flex-col">
+        <!-- 顶部导航栏 -->
+        <header class="bg-blue-600 text-white shadow-md">
+            <div class="container mx-auto px-4">
+                <div class="flex space-x-6 py-4 text-lg">
+                    <button v-for="tab in tabs" :key="tab"
+                            @click="selectTab(tab)"
+                            class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700"
+                            :class="{'bg-blue-800 font-bold': activeTab===tab}">
+                        {{ tab }}
+                    </button>
+                </div>
+            </div>
+        </header>
 
-<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-<script>
-  new Vue({
-    el: '#app',
-    delimiters: ['[[', ']]'],   // 👈 改插值符号
-    data: {
-      articles: []
-    },
-    created() {
-      fetch('/articles/')
-        .then(res => res.json())
-        .then(data => {
-          this.articles = data;
-          console.log("文章数量:", this.articles.length);
+        <!-- 主要内容区域 -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- 左侧文章列表 (非首页显示) -->
+            <aside v-if="activeTab !== '首页'" class="w-64 bg-white border-r border-gray-200 overflow-y-auto">
+                <div class="p-4">
+                    <h2 class="text-lg font-bold mb-4 pb-2 border-b border-gray-200">{{ activeTab }}文章</h2>
+                    <div v-if="articles.length === 0" class="text-gray-500 text-sm">暂无文章</div>
+                    <div v-for="article in articles" :key="article.id"
+                         @click="selectArticle(article)"
+                         class="cursor-pointer p-3 mb-2 rounded transition-colors duration-200 hover:bg-gray-100"
+                         :class="{'bg-blue-50 border-l-4 border-blue-500': activeArticle?.id === article.id}">
+                        <h3 class="font-medium text-gray-800 line-clamp-2">{{ article.title }}</h3>
+                        <p class="text-xs text-gray-500 mt-1">{{ article.created_at }}</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 中心文章内容区域 -->
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                <!-- 首页内容 -->
+                <div v-if="activeTab === '首页'" class="max-w-3xl mx-auto">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">欢迎来到棒球知识库</h1>
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <h2 class="text-xl font-semibold mb-3">关于棒球知识库</h2>
+                        <p class="text-gray-700">这里汇集了棒球的规则、训练方法等专业知识，帮助您更好地了解和学习棒球运动。</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+                            <h2 class="text-xl font-semibold mb-3 text-blue-600">规则知识</h2>
+                            <p class="text-gray-700 mb-4">了解棒球比赛的基本规则、裁判手势和比赛流程。</p>
+                            <button @click="selectTab('规则')" class="text-blue-600 hover:text-blue-800 font-medium flex items-center">
+                                查看规则 <span class="ml-1">→</span>
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+                            <h2 class="text-xl font-semibold mb-3 text-blue-600">训练方法</h2>
+                            <p class="text-gray-700 mb-4">学习棒球的基本技术、战术训练和体能提升方法。</p>
+                            <button @click="selectTab('训练')" class="text-blue-600 hover:text-blue-800 font-medium flex items-center">
+                                查看训练 <span class="ml-1">→</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文章内容区域 -->
+                <div v-else-if="activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
+                    <h1 class="text-2xl font-bold text-gray-800 mb-4">{{ activeArticle.title }}</h1>
+                    <div class="flex items-center text-sm text-gray-500 mb-6">
+                        <span>{{ activeArticle.created_at }}</span>
+                        <span class="mx-2">•</span>
+                        <span>{{ activeTab }}</span>
+                    </div>
+                    <div class="prose max-w-none text-gray-700">
+                        <p v-html="formatContent(activeArticle.content)"></p>
+                    </div>
+
+                    <!-- 显示图片 -->
+                    <div v-if="activeArticle.images.length > 0" class="mt-8">
+                        <h3 class="text-lg font-semibold mb-4">相关图片</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div v-for="(image, index) in activeArticle.images" :key="index" class="bg-gray-100 rounded-lg overflow-hidden">
+                                <img :src="image" alt="文章图片" class="w-full h-auto object-cover" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 显示视频 -->
+                    <div v-if="activeArticle.videos.length > 0" class="mt-8">
+                        <h3 class="text-lg font-semibold mb-4">相关视频</h3>
+                        <div v-for="(video, index) in activeArticle.videos" :key="index" class="mb-6">
+                            <video controls class="w-full h-auto bg-black rounded-lg">
+                                <source :src="video" type="video/mp4" />
+                                您的浏览器不支持视频播放
+                            </video>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 未选中文章时显示 -->
+                <div v-else-if="activeTab !== '首页'" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-12 text-center">
+                    <p class="text-gray-500 text-lg">请从左侧列表中选择一篇文章查看</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                tabs: ['首页', '训练', '规则'], // 标签页列表，可以后续添加更多
+                activeTab: '首页', // 当前选中的标签页
+                articles: [], // 当前分类下的文章列表
+                activeArticle: null, // 当前选中的文章
+            },
+            methods: {
+                // 选择标签页
+                selectTab(tab) {
+                    this.activeTab = tab;
+                    this.activeArticle = null;
+
+                    // 如果不是首页，加载对应分类的文章
+                    if (tab !== '首页') {
+                        this.loadArticlesByCategory(tab);
+                    }
+                },
+
+                // 选择文章
+                selectArticle(article) {
+                    this.activeArticle = article;
+                },
+
+                // 按分类加载文章
+                loadArticlesByCategory(category) {
+                    axios.get(`/articles/${category}/`)
+                        .then(res => {
+                            this.articles = res.data;
+                        })
+                        .catch(err => {
+                            console.error('加载文章失败:', err);
+                            this.articles = [];
+                        });
+                },
+
+                // 格式化文章内容（简单的换行处理）
+                formatContent(content) {
+                    if (!content) return '';
+                    // 将换行符转换为<br>标签
+                    return content.replace(/\n/g, '<br>');
+                }
+            },
+            // 组件挂载时，如果不是首页则加载对应文章
+            mounted() {
+                if (this.activeTab !== '首页') {
+                    this.loadArticlesByCategory(this.activeTab);
+                }
+            }
         });
-    }
-  })
-</script>
+    </script>
+</body>
+</html>
