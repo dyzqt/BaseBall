@@ -92,14 +92,14 @@
                         <span>{{ activeTab }}</span>
                     </div>
                     <div class="prose max-w-none text-gray-700">
-                        <p v-html="formatContent(activeArticle.content)"></p>
+                        <div v-html="renderContent(activeArticle)"></div>
                     </div>
 
-                    <!-- 显示图片 -->
-                    <div v-if="activeArticle.images.length > 0" class="mt-8">
+                    <!-- 显示未在正文中使用的图片 -->
+                    <div v-if="getUnusedImages(activeArticle).length > 0" class="mt-8">
                         <h3 class="text-lg font-semibold mb-4">相关图片</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div v-for="(image, index) in activeArticle.images" :key="index" class="bg-gray-100 rounded-lg overflow-hidden">
+                            <div v-for="(image, index) in getUnusedImages(activeArticle)" :key="index" class="bg-gray-100 rounded-lg overflow-hidden">
                                 <img :src="image" alt="文章图片" class="w-full h-auto object-cover" />
                             </div>
                         </div>
@@ -165,11 +165,57 @@
                         });
                 },
 
-                // 格式化文章内容（简单的换行处理）
-                formatContent(content) {
-                    if (!content) return '';
-                    // 将换行符转换为<br>标签
-                    return content.replace(/\n/g, '<br>');
+                // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]
+                renderContent(article) {
+                    if (!article || !article.content) return '';
+
+                    const images = Array.isArray(article.images) ? article.images : [];
+                    let html = article.content;
+
+                    // 将换行符转换为 <br>
+                    html = html.replace(/\n/g, '<br>');
+
+                    // 匹配 [imgN[:pos]]，pos 可为 left|right|center
+                    html = html.replace(/\[img(\d+)(?::(left|right|center))?\]/g, (match, indexStr, pos) => {
+                        const idx = parseInt(indexStr, 10);
+                        const src = images[idx];
+                        if (!src) {
+                            return '';
+                        }
+
+                        const position = pos || 'center';
+                        let wrapperStyle = '';
+                        let imgClass = 'max-w-full h-auto rounded';
+
+                        if (position === 'left') {
+                            wrapperStyle = 'text-align:left;';
+                        } else if (position === 'right') {
+                            wrapperStyle = 'text-align:right;';
+                        } else {
+                            wrapperStyle = 'text-align:center;';
+                        }
+
+                        return `<div style="${wrapperStyle}"><img src="${src}" alt="文章图片" class="${imgClass}" /></div>`;
+                    });
+
+                    return html;
+                },
+
+                // 计算未在正文使用的图片
+                getUnusedImages(article) {
+                    if (!article) return [];
+                    const images = Array.isArray(article.images) ? article.images : [];
+                    const content = article.content || '';
+
+                    const used = new Set();
+                    const regex = /\[img(\d+)(?::(left|right|center))?\]/g;
+                    let m;
+                    while ((m = regex.exec(content)) !== null) {
+                        const idx = parseInt(m[1], 10);
+                        if (!Number.isNaN(idx)) used.add(idx);
+                    }
+
+                    return images.filter((_, idx) => !used.has(idx));
                 }
             },
             // 组件挂载时，如果不是首页则加载对应文章
