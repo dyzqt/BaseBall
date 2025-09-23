@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body class="bg-gray-50 font-sans">
+    {% verbatim %}
     <div id="app" class="h-screen flex flex-col">
         <!-- 顶部导航栏 -->
         <header class="bg-blue-600 text-white shadow-md">
@@ -45,7 +46,7 @@
                          @click="selectArticle(article)"
                          class="cursor-pointer p-3 mb-2 rounded transition-colors duration-200 hover:bg-gray-100"
                          :class="{'bg-blue-50 border-l-4 border-blue-500': activeArticle?.id === article.id}">
-                        <h3 class="font-medium text-gray-800 line-clamp-2">{{ article.title }}</h3>
+                        <h3 class="font-medium text-red-600">{{ article.title }}</h3>
                         <p class="text-xs text-gray-500 mt-1">{{ article.created_at }}</p>
                     </div>
                 </div>
@@ -59,7 +60,11 @@
                     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-3">关于棒球知识库</h2>
                         <p class="text-gray-700">这里汇集了棒球的规则、训练方法等专业知识，帮助您更好地了解和学习棒球运动。</p>
+
                     </div>
+
+
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
                             <h2 class="text-xl font-semibold mb-3 text-blue-600">规则知识</h2>
@@ -119,6 +124,8 @@
             </main>
         </div>
     </div>
+
+    {% endverbatim %}
 
     <script>
         new Vue({

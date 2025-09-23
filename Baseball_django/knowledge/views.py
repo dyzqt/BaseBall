@@ -28,12 +28,19 @@ def article_list(request):
 
 # 按分类获取文章
 def articles_by_category(request, category):
-    # 转换中文分类名到英文
+    # 中文 -> 英文映射（兼容历史数据中可能存中文分类的情况）
     category_map = {'训练': 'training', '规则': 'rules'}
-    category_en = category_map.get(category, 'training')
+    category_en = category_map.get(category)
+
+    # 同时匹配英文和值以及中文值，兼容历史数据
+    from django.db.models import Q
+    query = Q()
+    if category_en:
+        query |= Q(category=category_en)
+    query |= Q(category=category)
 
     data = []
-    for article in Article.objects.filter(category=category_en).order_by("-created_at"):
+    for article in Article.objects.filter(query).order_by("-created_at"):
         data.append({
             "id": article.id,
             "title": article.title,
