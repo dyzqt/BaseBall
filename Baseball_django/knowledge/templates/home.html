@@ -283,15 +283,18 @@
                     }
                     
                     // 匹配并行图片占位符 [img0,img1:parallel]
-                    const parallelImgRegex = /\[([^:]+):parallel\]/g;
-                    while ((m = parallelImgRegex.exec(content)) !== null) {
-                        const indices = m[1].split(',').map(s => parseInt(s.trim().replace('img', ''), 10));
-                        indices.forEach(idx => {
-                            if (!Number.isNaN(idx)) used.add(idx);
-                        });
-                    }
+                    const parallelImgRegex = /\[((?:img\d+,?)+):parallel\]/g;  // 修复此处
+    while ((m = parallelImgRegex.exec(content)) !== null) {
+        const indices = m[1].split(',').map(s => {
+            const imgNum = s.trim().replace('img', '');  // 提取数字部分
+            return parseInt(imgNum, 10);
+        });
+        indices.forEach(idx => {
+            if (!Number.isNaN(idx)) used.add(idx);
+        });
+    }
 
-                    return images.filter((_, idx) => !used.has(idx));
+    return images.filter((_, idx) => !used.has(idx));
                 }
             },
             // 组件挂载时，如果不是首页则加载对应文章
