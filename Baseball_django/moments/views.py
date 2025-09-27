@@ -76,9 +76,13 @@ def create_moment(request):
             moment.save()
             
             # 处理多张图片上传
-            images = request.FILES.getlist('images')
+            images = form.cleaned_data.get('images', [])
+            if not isinstance(images, list):
+                images = [images] if images else []
+            
             for image in images:
-                MomentImage.objects.create(moment=moment, image=image)
+                if image:  # 确保图片不为空
+                    MomentImage.objects.create(moment=moment, image=image)
             
             messages.success(request, '时刻发布成功！')
             return redirect('moments:moments_list')

@@ -7,6 +7,37 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .article-content {
+            line-height: 1.6;
+        }
+        .article-content p {
+            margin: 1rem 0;
+        }
+        .article-content .grid {
+            display: grid;
+            margin: 1.5rem 0;
+            clear: both;
+        }
+        .article-content .grid.grid-cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+        .article-content .grid.grid-cols-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .article-content .grid > div {
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .article-content .grid img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            max-height: 16rem;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans">
     {% verbatim %}
@@ -95,8 +126,8 @@
                         <span class="mx-2">•</span>
                         <span>{{ activeTab }}</span>
                     </div>
-                    <div class="prose max-w-none text-gray-700">
-                        <div v-html="renderContent(activeArticle)"></div>
+                    <div class="max-w-none text-gray-700 overflow-hidden article-content">
+                        <div v-html="renderContent(activeArticle)" class="space-y-4"></div>
                     </div>
 
                     <!-- 显示未在正文中使用的图片 -->
@@ -180,9 +211,12 @@
                     html = html.replace(/\n/g, '<br>');
 
                     // 首先处理并行图片 [img0,img1:parallel] 或 [img0,img1,img2:parallel]
-                    html = html.replace(/\[([^:]+):parallel\]/g, (match, imgList) => {
+                    html = html.replace(/\[((?:img\d+,?)+):parallel\]/g, (match, imgList) => {
+                        console.log('Processing parallel images:', match, imgList);
                         const indices = imgList.split(',').map(s => parseInt(s.trim().replace('img', ''), 10));
                         const validImages = indices.filter(idx => !Number.isNaN(idx) && images[idx]).map(idx => images[idx]);
+                        
+                        console.log('Valid images:', validImages);
                         
                         if (validImages.length === 0) return '';
                         
@@ -198,10 +232,12 @@
                         }
                         
                         const imageElements = validImages.map(src => 
-                            `<div class="bg-gray-100 rounded-lg overflow-hidden"><img src="${src}" alt="文章图片" class="w-full h-auto object-cover" /></div>`
+                            `<div><img src="${src}" alt="文章图片" /></div>`
                         ).join('');
                         
-                        return `<div class="grid ${gridClass} gap-4 my-4">${imageElements}</div>`;
+                        const result = `<div class="grid ${gridClass} gap-4">${imageElements}</div>`;
+                        console.log('Generated HTML:', result);
+                        return result;
                     });
 
                     // 然后处理单个图片 [imgN[:pos]]，pos 可为 left|right|center
@@ -224,7 +260,7 @@
                             wrapperStyle = 'text-align:center;';
                         }
 
-                        return `<div style="${wrapperStyle}"><img src="${src}" alt="文章图片" class="${imgClass}" /></div>`;
+                        return `<div style="${wrapperStyle}"><img src="${src}" alt="文章图片" class="max-w-full h-auto rounded shadow-sm" style="max-height: 16rem;" /></div>`;
                     });
 
                     return html;
