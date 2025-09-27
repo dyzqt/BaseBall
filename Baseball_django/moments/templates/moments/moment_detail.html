@@ -26,8 +26,14 @@
                     {{ moment.content|linebreaks }}
                 </div>
                 
-                {% if moment.image %}
-                    <img src="{{ moment.image.url }}" class="moment-image" alt="时刻图片">
+                {% if moment.images.exists %}
+                    <div class="moment-images-grid {% if moment.images.count == 2 %}two-images{% elif moment.images.count == 3 %}three-images{% elif moment.images.count == 4 %}four-images{% else %}five-or-more{% endif %}">
+                        {% for image in moment.images.all %}
+                            <div class="moment-image-item" onclick="openImageModal('{{ image.image.url }}')">
+                                <img src="{{ image.image.url }}" alt="时刻图片">
+                            </div>
+                        {% endfor %}
+                    </div>
                 {% endif %}
                 
                 <div class="d-flex justify-content-between align-items-center mt-4">

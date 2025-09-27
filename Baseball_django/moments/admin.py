@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Moment, MomentLike, MomentComment
+from .models import UserProfile, Moment, MomentLike, MomentComment, MomentImage
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -34,3 +34,9 @@ class MomentCommentAdmin(admin.ModelAdmin):
     def content_preview(self, obj):
         return obj.content[:30] + '...' if len(obj.content) > 30 else obj.content
     content_preview.short_description = '评论预览'
+
+@admin.register(MomentImage)
+class MomentImageAdmin(admin.ModelAdmin):
+    list_display = ['moment', 'image', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['moment__content', 'moment__author__username']

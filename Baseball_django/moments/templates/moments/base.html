@@ -22,6 +22,38 @@
             border-radius: 10px;
             margin-top: 15px;
         }
+        .moment-images-grid {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .moment-images-grid.two-images {
+            grid-template-columns: 1fr 1fr;
+        }
+        .moment-images-grid.three-images {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .moment-images-grid.four-images {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+        .moment-images-grid.five-or-more {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+        .moment-image-item {
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .moment-image-item:hover {
+            transform: scale(1.02);
+        }
+        .moment-image-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
         .like-btn {
             border: none;
             background: none;
@@ -147,6 +179,21 @@
         </div>
     </footer>
 
+    <!-- 图片预览模态框 -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">图片预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" alt="预览图片" class="img-fluid" style="max-height: 70vh;">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // 点赞功能
@@ -174,6 +221,13 @@
                 count.textContent = data.likes_count;
             })
             .catch(error => console.error('Error:', error));
+        }
+        
+        // 图片预览功能
+        function openImageModal(imageUrl) {
+            document.getElementById('modalImage').src = imageUrl;
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
         }
     </script>
     

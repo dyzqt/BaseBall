@@ -13,18 +13,19 @@ class MomentForm(forms.ModelForm):
         label='内容'
     )
     
-    image = forms.ImageField(
+    images = forms.FileField(
         required=False,
-        widget=forms.FileInput(attrs={
+        widget=forms.ClearableFileInput(attrs={
             'class': 'form-control',
-            'accept': 'image/*'
+            'accept': 'image/*',
+            'multiple': True
         }),
-        label='图片'
+        label='图片（可上传多张）'
     )
     
     class Meta:
         model = Moment
-        fields = ['content', 'image']
+        fields = ['content']
 
 class UserProfileForm(forms.ModelForm):
     """用户资料表单"""

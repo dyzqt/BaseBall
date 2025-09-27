@@ -169,7 +169,7 @@
                         });
                 },
 
-                // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]
+                // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]、[img0,img1:parallel]
                 renderContent(article) {
                     if (!article || !article.content) return '';
 
@@ -179,7 +179,32 @@
                     // 将换行符转换为 <br>
                     html = html.replace(/\n/g, '<br>');
 
-                    // 匹配 [imgN[:pos]]，pos 可为 left|right|center
+                    // 首先处理并行图片 [img0,img1:parallel] 或 [img0,img1,img2:parallel]
+                    html = html.replace(/\[([^:]+):parallel\]/g, (match, imgList) => {
+                        const indices = imgList.split(',').map(s => parseInt(s.trim().replace('img', ''), 10));
+                        const validImages = indices.filter(idx => !Number.isNaN(idx) && images[idx]).map(idx => images[idx]);
+                        
+                        if (validImages.length === 0) return '';
+                        
+                        let gridClass = '';
+                        if (validImages.length === 2) {
+                            gridClass = 'grid-cols-2';
+                        } else if (validImages.length === 3) {
+                            gridClass = 'grid-cols-3';
+                        } else if (validImages.length === 4) {
+                            gridClass = 'grid-cols-2';
+                        } else {
+                            gridClass = 'grid-cols-2';
+                        }
+                        
+                        const imageElements = validImages.map(src => 
+                            `<div class="bg-gray-100 rounded-lg overflow-hidden"><img src="${src}" alt="文章图片" class="w-full h-auto object-cover" /></div>`
+                        ).join('');
+                        
+                        return `<div class="grid ${gridClass} gap-4 my-4">${imageElements}</div>`;
+                    });
+
+                    // 然后处理单个图片 [imgN[:pos]]，pos 可为 left|right|center
                     html = html.replace(/\[img(\d+)(?::(left|right|center))?\]/g, (match, indexStr, pos) => {
                         const idx = parseInt(indexStr, 10);
                         const src = images[idx];
@@ -212,11 +237,22 @@
                     const content = article.content || '';
 
                     const used = new Set();
-                    const regex = /\[img(\d+)(?::(left|right|center))?\]/g;
+                    
+                    // 匹配单个图片占位符 [imgN[:pos]]
+                    const singleImgRegex = /\[img(\d+)(?::(left|right|center))?\]/g;
                     let m;
-                    while ((m = regex.exec(content)) !== null) {
+                    while ((m = singleImgRegex.exec(content)) !== null) {
                         const idx = parseInt(m[1], 10);
                         if (!Number.isNaN(idx)) used.add(idx);
+                    }
+                    
+                    // 匹配并行图片占位符 [img0,img1:parallel]
+                    const parallelImgRegex = /\[([^:]+):parallel\]/g;
+                    while ((m = parallelImgRegex.exec(content)) !== null) {
+                        const indices = m[1].split(',').map(s => parseInt(s.trim().replace('img', ''), 10));
+                        indices.forEach(idx => {
+                            if (!Number.isNaN(idx)) used.add(idx);
+                        });
                     }
 
                     return images.filter((_, idx) => !used.has(idx));

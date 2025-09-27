@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 import json
 
-from .models import Moment, MomentLike, MomentComment, UserProfile
+from .models import Moment, MomentLike, MomentComment, UserProfile, MomentImage
 from .forms import MomentForm, UserProfileForm
 
 def register_view(request):
@@ -74,6 +74,12 @@ def create_moment(request):
             moment = form.save(commit=False)
             moment.author = request.user
             moment.save()
+            
+            # 处理多张图片上传
+            images = request.FILES.getlist('images')
+            for image in images:
+                MomentImage.objects.create(moment=moment, image=image)
+            
             messages.success(request, '时刻发布成功！')
             return redirect('moments:moments_list')
     else:

@@ -26,16 +26,16 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="id_image" class="form-label">添加图片（可选）</label>
-                        {{ form.image }}
-                        {% if form.image.errors %}
+                        <label for="id_images" class="form-label">添加图片（可选）</label>
+                        {{ form.images }}
+                        {% if form.images.errors %}
                             <div class="text-danger">
-                                {% for error in form.image.errors %}
+                                {% for error in form.images.errors %}
                                     <small>{{ error }}</small>
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">支持 JPG、PNG 格式</div>
+                        <div class="form-text">支持 JPG、PNG 格式，可同时上传多张图片</div>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
