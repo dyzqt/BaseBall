@@ -6,6 +6,7 @@ class Article(models.Model):
         ('training', '训练'),
         ('rules', '规则'),
     )
+
     title = models.CharField(max_length=200)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

@@ -25,7 +25,17 @@ SECRET_KEY = "django-insecure-s4kubj#0h++4=^gyo$cl2*m1@y_4!r3d%)uvf#vz&hg06(gk7+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '192.168.168.89',  # 手机访问的局域网 IP
+]
+# 允许通过局域网访问时的 CSRF 来源（仅开发）
+CSRF_TRUSTED_ORIGINS = [
+    'http://192.168.168.89:8000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 
 # Application definition

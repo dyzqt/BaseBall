@@ -16,3 +16,6 @@ Quit the server with CTRL-BREAK.说明启动成功
 cd D:\其他\Code\Vue\BaseBall\Baseball_django # 进入项目目录
 python manage.py makemigrations
 python manage.py migrate
+
+
+python manage.py runserver 192.168.168.89:8000
