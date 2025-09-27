@@ -1,0 +1,67 @@
+{% extends 'moments/base.html' %}
+
+{% block title %}发布时刻 - 我的时刻{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card moment-card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-plus"></i> 发布新时刻</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_content" class="form-label">分享你的想法</label>
+                        {{ form.content }}
+                        {% if form.content.errors %}
+                            <div class="text-danger">
+                                {% for error in form.content.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">最多1000个字符</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_image" class="form-label">添加图片（可选）</label>
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            <div class="text-danger">
+                                {% for error in form.image.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">支持 JPG、PNG 格式</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'moments:moments_list' %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-times"></i> 取消
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> 发布时刻
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 发布提示 -->
+        <div class="card moment-card mt-4">
+            <div class="card-body">
+                <h6><i class="fas fa-lightbulb"></i> 发布提示</h6>
+                <ul class="text-muted mb-0">
+                    <li>分享积极正面的内容，营造良好的社区氛围</li>
+                    <li>尊重他人，避免发布不当言论</li>
+                    <li>可以分享棒球相关的想法、建议或经验</li>
+                    <li>图片大小建议不超过5MB</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

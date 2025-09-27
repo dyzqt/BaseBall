@@ -1,0 +1,149 @@
+{% extends 'moments/base.html' %}
+
+{% block title %}{{ moment.author.profile.nickname|default:moment.author.username }}的时刻 - 我的时刻{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 时刻详情 -->
+        <div class="card moment-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    {% if moment.author.profile.avatar %}
+                        <img src="{{ moment.author.profile.avatar.url }}" class="avatar me-3">
+                    {% else %}
+                        <div class="avatar bg-primary text-white d-flex align-items-center justify-content-center me-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h5 class="mb-0">{{ moment.author.profile.nickname|default:moment.author.username }}</h5>
+                        <small class="text-muted">{{ moment.created_at|date:"Y年m月d日 H:i" }}</small>
+                    </div>
+                </div>
+                
+                <div class="moment-content">
+                    {{ moment.content|linebreaks }}
+                </div>
+                
+                {% if moment.image %}
+                    <img src="{{ moment.image.url }}" class="moment-image" alt="时刻图片">
+                {% endif %}
+                
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="d-flex align-items-center">
+                        <button class="like-btn me-3" id="like-btn-{{ moment.id }}" 
+                                onclick="likeMoment({{ moment.id }})">
+                            <i class="far fa-heart"></i>
+                            <span id="like-count-{{ moment.id }}">{{ moment.likes_count }}</span>
+                        </button>
+                        
+                        <span class="text-muted">
+                            <i class="fas fa-comment me-1"></i>
+                            {{ moment.comments_count }} 评论
+                        </span>
+                    </div>
+                    
+                    <a href="{% url 'moments:moments_list' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评论区域 -->
+        <div class="card moment-card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-comments"></i> 评论 ({{ comments.count }})</h5>
+            </div>
+            <div class="card-body">
+                <!-- 添加评论 -->
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'moments:add_comment' moment.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control" rows="3" 
+                                  placeholder="写下你的评论..." required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> 发表评论
+                        </button>
+                    </div>
+                </form>
+                <hr>
+                {% else %}
+                <div class="text-center py-3">
+                    <p class="text-muted">登录后即可发表评论</p>
+                    <a href="{% url 'moments:login' %}" class="btn btn-outline-primary">登录</a>
+                </div>
+                <hr>
+                {% endif %}
+                
+                <!-- 评论列表 -->
+                {% for comment in comments %}
+                <div class="d-flex mb-3">
+                    {% if comment.user.profile.avatar %}
+                        <img src="{{ comment.user.profile.avatar.url }}" class="avatar me-3">
+                    {% else %}
+                        <div class="avatar bg-secondary text-white d-flex align-items-center justify-content-center me-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="mb-1">{{ comment.user.profile.nickname|default:comment.user.username }}</h6>
+                            <small class="text-muted">{{ comment.created_at|date:"m-d H:i" }}</small>
+                        </div>
+                        <p class="mb-0">{{ comment.content|linebreaks }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <i class="fas fa-comment-slash fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">还没有评论，来抢沙发吧！</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- 作者信息 -->
+        <div class="card moment-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user"></i> 作者信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    {% if moment.author.profile.avatar %}
+                        <img src="{{ moment.author.profile.avatar.url }}" class="avatar mb-3" style="width: 80px; height: 80px;">
+                    {% else %}
+                        <div class="avatar bg-primary text-white d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 80px; height: 80px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                    {% endif %}
+                    <h5>{{ moment.author.profile.nickname|default:moment.author.username }}</h5>
+                    {% if moment.author.profile.bio %}
+                        <p class="text-muted">{{ moment.author.profile.bio }}</p>
+                    {% endif %}
+                    <small class="text-muted">加入时间：{{ moment.author.date_joined|date:"Y年m月" }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 相关时刻 -->
+        <div class="card moment-card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> 最新时刻</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">更多精彩时刻等你发现...</p>
+                <a href="{% url 'moments:moments_list' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-list"></i> 查看全部
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

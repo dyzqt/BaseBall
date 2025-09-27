@@ -1,0 +1,181 @@
+{% extends 'moments/base.html' %}
+
+{% block title %}个人资料 - 我的时刻{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 个人资料编辑 -->
+        <div class="card moment-card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-user-edit"></i> 编辑个人资料</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            {% if profile.avatar %}
+                                <img src="{{ profile.avatar.url }}" class="avatar mb-3" style="width: 120px; height: 120px;">
+                            {% else %}
+                                <div class="avatar bg-primary text-white d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 120px; height: 120px;">
+                                    <i class="fas fa-user fa-3x"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                {{ form.avatar }}
+                                <div class="form-text">建议尺寸：200x200像素</div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="id_nickname" class="form-label">昵称</label>
+                                {{ form.nickname }}
+                                {% if form.nickname.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nickname.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_bio" class="form-label">个人简介</label>
+                                {{ form.bio }}
+                                {% if form.bio.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.bio.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">介绍一下自己，让更多人了解你</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 保存资料
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 我的时刻 -->
+        <div class="card moment-card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-heart"></i> 我的时刻 ({{ user_moments.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% for moment in user_moments %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <p class="mb-2">{{ moment.content|truncatewords:20 }}</p>
+                            <small class="text-muted">
+                                <i class="fas fa-heart text-danger"></i> {{ moment.likes_count }}
+                                <i class="fas fa-comment text-primary ms-3"></i> {{ moment.comments_count }}
+                                <span class="ms-3">{{ moment.created_at|date:"Y-m-d H:i" }}</span>
+                            </small>
+                        </div>
+                        <a href="{% url 'moments:moment_detail' moment.id %}" class="btn btn-outline-primary btn-sm">
+                            查看
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <i class="fas fa-heart-broken fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">还没有发布任何时刻</p>
+                    <a href="{% url 'moments:create_moment' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 发布第一个时刻
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- 个人信息概览 -->
+        <div class="card moment-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> 个人信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" class="avatar mb-3" style="width: 100px; height: 100px;">
+                    {% else %}
+                        <div class="avatar bg-primary text-white d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                    {% endif %}
+                    <h5>{{ profile.nickname|default:user.username }}</h5>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    {% if profile.bio %}
+                        <p class="text-muted">{{ profile.bio }}</p>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h5 class="text-primary">{{ user_moments.count }}</h5>
+                        <small class="text-muted">时刻</small>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="text-success">0</h5>
+                        <small class="text-muted">获赞</small>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="text-warning">0</h5>
+                        <small class="text-muted">评论</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="text-muted">
+                    <small>
+                        <i class="fas fa-calendar"></i> 加入时间：{{ user.date_joined|date:"Y年m月d日" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 快捷操作 -->
+        <div class="card moment-card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt"></i> 快捷操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'moments:create_moment' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 发布新时刻
+                    </a>
+                    <a href="{% url 'moments:moments_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> 浏览时刻
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 为表单字段添加Bootstrap样式
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input[type="text"], textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+    });
+</script>
+{% endblock %}
