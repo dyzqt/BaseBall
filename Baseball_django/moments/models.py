@@ -27,23 +27,16 @@ class Moment(models.Model):
     comments_count = models.PositiveIntegerField(default=0, verbose_name='评论数')
     is_public = models.BooleanField(default=True, verbose_name='是否公开')
 
+
 class MomentImage(models.Model):
-    """时刻图片"""
-    moment = models.ForeignKey(Moment, on_delete=models.CASCADE, related_name='images', verbose_name='时刻')
-    image = models.ImageField(upload_to='moment_images/', verbose_name='图片')
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
-    
-    class Meta:
-        verbose_name = '时刻图片'
-        verbose_name_plural = '时刻图片'
-    
+    moment = models.ForeignKey("Moment", on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="moment_images/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"{self.author.username} - {self.content[:50]}..."
-    
-    class Meta:
-        verbose_name = '我的时刻'
-        verbose_name_plural = '我的时刻'
-        ordering = ['-created_at']
+        return f"{self.moment.author.username} - 图片"
+
+
 
 class MomentLike(models.Model):
     """时刻点赞"""

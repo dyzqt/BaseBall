@@ -92,15 +92,13 @@ def create_moment(request):
 
 @login_required
 def moment_detail(request, moment_id):
-    """时刻详情"""
-    moment = get_object_or_404(Moment, id=moment_id, is_public=True)
-    comments = moment.comments.all().order_by('created_at')
-    
-    context = {
-        'moment': moment,
-        'comments': comments,
-    }
-    return render(request, 'moments/moment_detail.html', context)
+
+    try:
+        moment = Moment.objects.get(id=moment_id)
+    except Moment.DoesNotExist:
+        return render(request, 'moments/moment_not_found.html', {"moment_id": moment_id})
+
+    return render(request, 'moments/moment_detail.html', {'moment': moment})
 
 @login_required
 @require_POST
