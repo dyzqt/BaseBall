@@ -103,7 +103,11 @@ def create_moment(request):
 
 @login_required
 def moment_detail(request, moment_id):
+    moment = get_object_or_404(Moment, id=moment_id, is_public=True)
 
+    # 每次有人访问详情页时 +1
+    moment.views = moment.views + 1
+    moment.save(update_fields=['views'])
     try:
         moment = Moment.objects.get(id=moment_id)
     except Moment.DoesNotExist:

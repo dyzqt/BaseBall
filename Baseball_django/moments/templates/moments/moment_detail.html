@@ -37,7 +37,7 @@
                 {% endif %}
                 
                 <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center gap-4">
                         <button class="like-btn me-3" id="like-btn-{{ moment.id }}" 
                                 onclick="likeMoment({{ moment.id }})">
                             <i class="far fa-heart"></i>
@@ -47,6 +47,10 @@
                         <span class="text-muted">
                             <i class="fas fa-comment me-1"></i>
                             {{ moment.comments_count }} 评论
+                        </span>
+                        <span class="text-muted">
+                            <i class="fas fa-eye me-1"></i>
+                            {{ moment.views }} 次查看
                         </span>
                     </div>
                     

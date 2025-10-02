@@ -26,7 +26,7 @@ class Moment(models.Model):
     likes_count = models.PositiveIntegerField(default=0, verbose_name='点赞数')
     comments_count = models.PositiveIntegerField(default=0, verbose_name='评论数')
     is_public = models.BooleanField(default=True, verbose_name='是否公开')
-
+    views = models.PositiveIntegerField(default=0)
 
 class MomentImage(models.Model):
     moment = models.ForeignKey("Moment", on_delete=models.CASCADE, related_name="images")
