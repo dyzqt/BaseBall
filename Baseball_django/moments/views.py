@@ -8,6 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.contrib.auth.models import User
+from django.db.models import Count
+from .models import Moment
 import json
 
 from .models import Moment, MomentLike, MomentComment, UserProfile, MomentImage
@@ -58,10 +61,18 @@ def moments_list(request):
     paginator = Paginator(moments, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
+    # 统计信息
+    total_moments = Moment.objects.filter(is_public=True).count()
+    total_users = User.objects.count()
+    total_likes = sum(m.likes.count() for m in Moment.objects.all())  # 点赞总数
+
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
+        'total_moments': total_moments,
+        'total_users': total_users,
+        'total_likes': total_likes,
     }
     return render(request, 'moments/moments_list.html', context)
 
