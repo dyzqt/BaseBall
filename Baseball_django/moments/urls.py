@@ -1,3 +1,4 @@
+from django.contrib.auth.views import LogoutView
 from django.urls import path
 from . import views
 
@@ -12,4 +13,6 @@ urlpatterns = [
     path('moment/<int:moment_id>/like/', views.like_moment, name='like_moment'),
     path('moment/<int:moment_id>/comment/', views.add_comment, name='add_comment'),
     path('profile/', views.profile_view, name='profile'),
+    path('logout/', views.user_logout, name='logout'),
+
 ]

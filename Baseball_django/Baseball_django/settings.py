@@ -145,3 +145,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 # 添加媒体文件配置
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+LOGIN_URL = '/moments/login/'
+LOGOUT_REDIRECT_URL = '/moments/'

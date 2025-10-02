@@ -9,12 +9,17 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
+from django.contrib.auth import logout
 from django.db.models import Count
 from .models import Moment
 import json
 
 from .models import Moment, MomentLike, MomentComment, UserProfile, MomentImage
 from .forms import MomentForm, UserProfileForm
+
+def user_logout(request):
+    logout(request)
+    return redirect('moments:login')  # 登出后回到登录页
 
 def register_view(request):
     """用户注册"""
