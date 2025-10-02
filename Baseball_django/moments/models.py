@@ -28,6 +28,10 @@ class Moment(models.Model):
     is_public = models.BooleanField(default=True, verbose_name='是否公开')
     views = models.PositiveIntegerField(default=0)
 
+    def liked_users(self):
+        """返回点赞当前时刻的所有用户"""
+        return User.objects.filter(id__in=self.likes.values('user_id'))
+
 class MomentImage(models.Model):
     moment = models.ForeignKey("Moment", on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="moment_images/")
@@ -48,6 +52,8 @@ class MomentLike(models.Model):
         unique_together = ('user', 'moment')  # 防止重复点赞
         verbose_name = '时刻点赞'
         verbose_name_plural = '时刻点赞'
+
+
 
 class MomentComment(models.Model):
     """时刻评论"""

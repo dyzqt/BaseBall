@@ -102,18 +102,32 @@ def create_moment(request):
     return render(request, 'moments/create_moment.html', {'form': form})
 
 @login_required
+@login_required
 def moment_detail(request, moment_id):
-    moment = get_object_or_404(Moment, id=moment_id, is_public=True)
+    """查看时刻详情"""
+    moment = get_object_or_404(Moment, id=moment_id)
 
-    # 每次有人访问详情页时 +1
-    moment.views = moment.views + 1
-    moment.save(update_fields=['views'])
-    try:
-        moment = Moment.objects.get(id=moment_id)
-    except Moment.DoesNotExist:
-        return render(request, 'moments/moment_not_found.html', {"moment_id": moment_id})
+    # 增加浏览量
+    moment.views += 1
+    moment.save()
 
-    return render(request, 'moments/moment_detail.html', {'moment': moment})
+    # 预加载相关数据，避免N+1查询
+    moment = (Moment.objects.select_related('author', 'author__profile')
+              .prefetch_related('images', 'comments', 'comments__user', 'comments__user__profile', 'likes')
+              .get(id=moment_id))
+
+
+    comments = moment.comments.all().order_by('-created_at')
+
+    # 获取最新的时刻列表（排除当前时刻）
+    latest_moments = Moment.objects.exclude(id=moment_id).select_related('author', 'author__profile').prefetch_related('images').order_by('-created_at')[:5]  # 只获取最新的5条
+
+    return render(request, 'moments/moment_detail.html', {
+        'moment': moment,
+        'comments': comments,
+        'latest_moments': latest_moments
+    })
+
 
 @login_required
 @require_POST
