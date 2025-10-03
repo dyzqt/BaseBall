@@ -29,12 +29,16 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '192.168.168.89',  # 手机访问的局域网 IP
+    '.ngrok-free.dev',   # 允许所有 ngrok 子域名
+    '.ngrok-free.app',
 ]
 # 允许通过局域网访问时的 CSRF 来源（仅开发）
 CSRF_TRUSTED_ORIGINS = [
     'http://192.168.168.89:8000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'https://*.ngrok-free.app',
+    'https://*.ngrok-free.dev',
 ]
 
 

@@ -109,6 +109,21 @@
             padding: 15px;
             margin-top: 15px;
         }
+        .sticky-sidebar {
+            position: sticky !important;
+            top: 80px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            z-index: 10;
+        }
+        
+        /* 为移动设备调整 */
+        @media (max-width: 991px) {
+            .sticky-sidebar {
+                position: static !important;
+                max-height: none;
+            }
+        }
     </style>
 </head>
 <body>
