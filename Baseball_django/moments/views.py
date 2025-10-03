@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.db.models import Count
+from django.db.models import Count, Sum
 from .models import Moment
 import json
 
@@ -106,32 +106,38 @@ def create_moment(request):
         form = MomentForm()
     return render(request, 'moments/create_moment.html', {'form': form})
 
-@login_required
+
 @login_required
 def moment_detail(request, moment_id):
-    """查看时刻详情"""
-    moment = get_object_or_404(Moment, id=moment_id)
+    try:
+        # 尝试获取时刻对象
+        moment = Moment.objects.get(id=moment_id)
 
-    # 增加浏览量
-    moment.views += 1
-    moment.save()
+        # 获取相关评论
+        comments = MomentComment.objects.filter(moment=moment).order_by('-created_at')
 
-    # 预加载相关数据，避免N+1查询
-    moment = (Moment.objects.select_related('author', 'author__profile')
-              .prefetch_related('images', 'comments', 'comments__user', 'comments__user__profile', 'likes')
-              .get(id=moment_id))
+        # 获取最新时刻（排除当前时刻）
+        latest_moments = Moment.objects.exclude(id=moment.id).order_by('-created_at')[:5]
 
+        # 增加浏览次数
+        moment.views += 1
+        moment.save()
 
-    comments = moment.comments.all().order_by('-created_at')
+        context = {
+            'moment': moment,
+            'comments': comments,
+            'latest_moments': latest_moments,
+        }
 
-    # 获取最新的时刻列表（排除当前时刻）
-    latest_moments = Moment.objects.exclude(id=moment_id).select_related('author', 'author__profile').prefetch_related('images').order_by('-created_at')[:5]  # 只获取最新的5条
+        return render(request, 'moments/moment_detail.html', context)
 
-    return render(request, 'moments/moment_detail.html', {
-        'moment': moment,
-        'comments': comments,
-        'latest_moments': latest_moments
-    })
+    except Moment.DoesNotExist:
+        # 当时刻不存在时，渲染 moment_not_found.html
+        return render(request, 'moments/moment_not_found.html', status=404)
+
+    except Exception as e:
+        # 其他异常也返回404页面
+        return render(request, 'moments/moment_not_found.html', status=404)
 
 
 @login_required
@@ -183,22 +189,31 @@ def add_comment(request, moment_id):
 
 @login_required
 def profile_view(request):
-    """用户资料页面"""
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    profile = request.user.profile
+
+    # 获取用户的所有时刻
     user_moments = Moment.objects.filter(author=request.user).order_by('-created_at')
-    
+
+    # 计算总获赞数（所有时刻的点赞数总和）
+    total_likes = user_moments.aggregate(total_likes=Sum('likes_count'))['total_likes'] or 0
+
+    # 计算总评论数（用户所有时刻收到的评论数量）
+    total_comments = MomentComment.objects.filter(moment__author=request.user).count()
+
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            messages.success(request, '资料更新成功！')
             return redirect('moments:profile')
     else:
         form = UserProfileForm(instance=profile)
-    
+
     context = {
         'profile': profile,
         'form': form,
         'user_moments': user_moments,
+        'total_likes': total_likes,
+        'total_comments': total_comments,
     }
+
     return render(request, 'moments/profile.html', context)
