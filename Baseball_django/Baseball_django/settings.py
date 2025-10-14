@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "ckeditor",
     "knowledge",
     "moments",
 ]
@@ -139,6 +140,42 @@ STATICFILES_DIRS = [
 
 # 定义STATIC_ROOT（用于生产环境）
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# CKEditor 配置：允许字体大小与对齐
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': [
+            {'name': 'basicstyles', 'items': ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat']},
+            {'name': 'paragraph', 'items': ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+            {'name': 'styles', 'items': ['Format', 'Font', 'FontSize']},
+            {'name': 'colors', 'items': ['TextColor', 'BGColor']},
+            {'name': 'clipboard', 'items': ['Undo', 'Redo']},
+            {'name': 'links', 'items': ['Link', 'Unlink']},
+            {'name': 'insert', 'items': ['Table', 'HorizontalRule']},
+            {'name': 'tools', 'items': ['Maximize']},
+        ],
+        'extraPlugins': ','.join([
+            'justify',  # 对齐
+            'font',     # 字体与大小
+            'colorbutton',
+        ]),
+        'removePlugins': 'image,sourcearea',
+        'height': 300,
+        'width': 'auto',
+        # 通过 data: URL 注入极小的样式以减小段落间距（无需额外文件）
+        'contentsCss': [
+            'data:text/css;charset=utf-8,'
+            'html%2Cbody%7Bmargin%3A0%3Bpadding%3A0%7D'
+            'body%7Bline-height%3A1.6%3Bfont-family%3A-apple-system%2CBlinkMacSystemFont%2C%22Segoe%20UI%22%2CRoboto%2CHelvetica%2CArial%2C%22Noto%20Sans%22%2C%22PingFang%20SC%22%2C%22Microsoft%20Yahei%22%2Csans-serif%7D'
+            'p%7Bmargin%3A0.5rem%200%7D'
+            'h1%2Ch2%2Ch3%2Ch4%2Ch5%2Ch6%7Bmargin%3A0.8rem%200%200.4rem%7D'
+            'ul%2Col%7Bmargin%3A0.5rem%200%200.5rem%201.25rem%7D'
+            'img%7Bmax-width%3A100%25%3Bheight%3Aauto%7D'
+            'table%7Bborder-collapse%3Acollapse%7D'
+            'table%20td%2Ctable%20th%7Bpadding%3A6px%208px%7D'
+        ],
+    }
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -11,9 +11,9 @@
         .article-content {
             line-height: 1.6;
         }
-        .article-content p {
-            margin: 1rem 0;
-        }
+        .article-content p { margin: 0.25rem 0; }
+        .article-content ul, .article-content ol { margin: 0.25rem 0 0.25rem 1rem; }
+        .article-content li { margin: 0.125rem 0; }
         .article-content .grid {
             display: grid;
             margin: 1.5rem 0;
@@ -245,6 +245,7 @@
                     this.activeArticle = article;
                     // 选择后关闭移动端菜单
                     this.showMenu = false;
+                    this.$nextTick(() => this.bindArticleImageClicks());
                 },
 
                 // 按分类加载文章
@@ -267,12 +268,7 @@
                         this.showPreview = true;
                     };
                     // 文章渲染后，给所有文章内的图片绑定点击放大
-                  this.$nextTick(() => {
-                    document.querySelectorAll('.article-content img').forEach(img => {
-                      img.style.cursor = "pointer";
-                      img.onclick = () => window.__showPreview(img.src);
-                    });
-                  });
+                    this.$nextTick(() => this.bindArticleImageClicks());
                 },
 
                 // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]、[img0,img1:parallel]
@@ -282,8 +278,10 @@
                     const images = Array.isArray(article.images) ? article.images : [];
                     let html = article.content;
 
-                    // 将换行符转换为 <br>
-                    html = html.replace(/\n/g, '<br>');
+                    // 若内容非HTML（无标签），才将换行符转换为 <br>，避免和段落/列表重复间距
+                    if (!/[<][a-zA-Z]+[\s>]/.test(html)) {
+                        html = html.replace(/\n/g, '<br>');
+                    }
 
                     // 首先处理并行图片 [img0,img1:parallel] 或 [img0,img1,img2:parallel]
                     html = html.replace(/\[((?:img\d+,?)+):parallel\]/g, (match, imgList) => {
@@ -307,7 +305,7 @@
                         }
 
                         const imageElements = validImages.map(src =>
-                            `<div><img src="${src}" alt="文章图片" /></div>`
+                            `<div><img src="${src}" alt="文章图片" style="cursor:pointer" onclick="window.__showPreview('${src}')" /></div>`
                         ).join('');
 
                         const result = `<div class="grid ${gridClass} gap-4">${imageElements}</div>`;
@@ -345,6 +343,22 @@
                     });
 
                     return html;
+                },
+
+                // 统一为文章内容中的<img>绑定点击放大
+                bindArticleImageClicks() {
+                    // 确保预览函数存在
+                    if (!window.__showPreview) {
+                        window.__showPreview = (src) => {
+                            this.previewImage = src;
+                            this.showPreview = true;
+                        };
+                    }
+                    const imgs = document.querySelectorAll('.article-content img');
+                    imgs.forEach(img => {
+                        img.style.cursor = 'pointer';
+                        img.onclick = () => window.__showPreview(img.src);
+                    });
                 },
 
                 // 计算未在正文使用的图片
