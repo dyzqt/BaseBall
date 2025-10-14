@@ -39,6 +39,11 @@
         }
         /* 保证导航内文字不换行为竖排 */
         .no-wrap { white-space: nowrap; }
+        /* 过场遮罩层 */
+        .loading-overlay { z-index: 60; }
+        /* 自定义棒球加载动画 */
+        @keyframes ball-spin { to { transform: rotate(360deg); } }
+        .loading-ball { width: 48px; height: 48px; animation: ball-spin 1s linear infinite; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -87,7 +92,7 @@
                                 {{ tab }}
                             </button>
                             <!-- 我的时刻链接 -->
-                            <a href="/moments/" class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 text-white no-underline no-wrap">
+                            <a href="/moments/" @click.prevent="navigateTo('/moments/')" class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 text-white no-underline no-wrap">
                                 我的时刻
                             </a>
                         </div>
@@ -211,6 +216,43 @@
              @click="showPreview = false">
             <img :src="previewImage" class="max-w-full max-h-full rounded-lg shadow-lg" />
         </div>
+        <!-- 全局过场加载层 -->
+        <div v-if="isLoading" class="fixed inset-0 loading-overlay bg-white bg-opacity-80 flex items-center justify-center px-6">
+            <div class="bg-white rounded-lg shadow-lg p-5 w-full max-w-sm text-center">
+                <div class="flex items-center justify-center mb-3">
+                    <!-- 棒球加载动画 -->
+                    <svg class="loading-ball mr-3" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3b82f6"/>
+                                <stop offset="100%" stop-color="#1d4ed8"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="32" cy="32" r="28" fill="url(#g)"/>
+                        <!-- 缝线 -->
+                        <path d="M16 20 C24 28, 40 28, 48 20" fill="none" stroke="#fff" stroke-width="2"/>
+                        <path d="M16 44 C24 36, 40 36, 48 44" fill="none" stroke="#fff" stroke-width="2"/>
+                        <!-- 小短线 -->
+                        <g stroke="#fff" stroke-width="2">
+                            <path d="M22 24 l-4 -4"/>
+                            <path d="M28 26 l-4 -4"/>
+                            <path d="M34 26 l4 -4"/>
+                            <path d="M40 24 l4 -4"/>
+                            <path d="M22 40 l-4 4"/>
+                            <path d="M28 38 l-4 4"/>
+                            <path d="M34 38 l4 4"/>
+                            <path d="M40 40 l4 4"/>
+                        </g>
+                    </svg>
+                    <span class="text-gray-800">{{ loadingMessage }}</span>
+                </div>
+                <div v-if="loadError" class="text-red-600 text-sm mb-2">{{ loadErrorMsg }}</div>
+                <div v-if="loadError" class="flex justify-center space-x-3">
+                    <button @click="retryLastAction" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">重试</button>
+                    <button @click="stopLoading" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">关闭</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     {% endverbatim %}
@@ -225,11 +267,19 @@
                 activeArticle: null, // 当前选中的文章
                 previewImage: null,   // 当前放大的图片
                 showPreview: false,    // 是否显示预览层
-                showMenu: false // 是否显示菜单
+                showMenu: false, // 是否显示菜单
+                // 过场加载
+                isLoading: false,
+                loadingMessage: '正在加载，请稍候…',
+                loadError: false,
+                loadErrorMsg: '',
+                _loadingTimer: null,
+                lastAction: null
             },
             methods: {
                 // 选择标签页
                 selectTab(tab) {
+                    this.startLoading('正在加载，请稍候…', () => this.selectTab(tab));
                     this.activeTab = tab;
                     this.activeArticle = null;
                     this.showMenu = false;
@@ -237,15 +287,18 @@
                     // 如果不是首页，加载对应分类的文章
                     if (tab !== '首页') {
                         this.loadArticlesByCategory(tab);
+                    } else {
+                        this.$nextTick(() => this.stopLoading());
                     }
                 },
 
                 // 选择文章
                 selectArticle(article) {
+                    this.startLoading('正在加载，请稍候…', () => this.selectArticle(article));
                     this.activeArticle = article;
                     // 选择后关闭移动端菜单
                     this.showMenu = false;
-                    this.$nextTick(() => this.bindArticleImageClicks());
+                    this.$nextTick(() => { this.bindArticleImageClicks(); this.stopLoading(); });
                 },
 
                 // 按分类加载文章
@@ -257,6 +310,7 @@
                         .catch(err => {
                             console.error('加载文章失败:', err);
                             this.articles = [];
+                            this.failLoading('页面加载失败，请稍后重试');
                         });
                     // if (this.activeTab !== '首页') {
                     //     this.loadArticlesByCategory(this.activeTab);
@@ -268,7 +322,7 @@
                         this.showPreview = true;
                     };
                     // 文章渲染后，给所有文章内的图片绑定点击放大
-                    this.$nextTick(() => this.bindArticleImageClicks());
+                    this.$nextTick(() => { this.bindArticleImageClicks(); this.stopLoading(); });
                 },
 
                 // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]、[img0,img1:parallel]
@@ -359,6 +413,46 @@
                         img.style.cursor = 'pointer';
                         img.onclick = () => window.__showPreview(img.src);
                     });
+                },
+
+                // 导航到站内其它地址（展示过场）
+                navigateTo(url) {
+                    this.startLoading('正在跳转，请稍候…', () => this.navigateTo(url));
+                    setTimeout(() => { window.location.href = url; }, 50);
+                },
+
+                // 过场控制
+                startLoading(message = '正在加载，请稍候…', retryFn = null) {
+                    this.loadingMessage = message;
+                    this.isLoading = true;
+                    this.loadError = false;
+                    this.loadErrorMsg = '';
+                    this.lastAction = retryFn;
+                    if (this._loadingTimer) clearTimeout(this._loadingTimer);
+                    this._loadingTimer = setTimeout(() => {
+                        this.failLoading('加载超时（>60秒），请检查网络或稍后重试');
+                    }, 60000);
+                },
+                stopLoading() {
+                    if (this._loadingTimer) clearTimeout(this._loadingTimer);
+                    this._loadingTimer = null;
+                    this.isLoading = false;
+                    this.loadError = false;
+                    this.loadErrorMsg = '';
+                },
+                failLoading(msg) {
+                    if (this._loadingTimer) clearTimeout(this._loadingTimer);
+                    this._loadingTimer = null;
+                    this.isLoading = true;
+                    this.loadError = true;
+                    this.loadErrorMsg = msg || '加载失败';
+                },
+                retryLastAction() {
+                    if (typeof this.lastAction === 'function') {
+                        const fn = this.lastAction;
+                        this.startLoading(this.loadingMessage, fn);
+                        this.$nextTick(() => fn());
+                    }
                 },
 
                 // 计算未在正文使用的图片
