@@ -194,16 +194,6 @@
                 // 选择文章
                 selectArticle(article) {
                     this.activeArticle = article;
-
-                    this.$nextTick(() => {
-                        document.querySelectorAll('.article-content img').forEach(img => {
-                            img.style.cursor = "pointer";
-                            img.addEventListener("click", () => {
-                                this.previewImage = img.src;
-                                this.showPreview = true;
-                            });
-                        });
-                    });
                 },
 
                 // 按分类加载文章
@@ -216,7 +206,9 @@
                             console.error('加载文章失败:', err);
                             this.articles = [];
                         });
-
+                    // if (this.activeTab !== '首页') {
+                    //     this.loadArticlesByCategory(this.activeTab);
+                    // }
 
                     // 给 renderContent 里的图片点击用
                     window.__showPreview = (src) => {
@@ -224,7 +216,12 @@
                         this.showPreview = true;
                     };
                     // 文章渲染后，给所有文章内的图片绑定点击放大
-
+                  this.$nextTick(() => {
+                    document.querySelectorAll('.article-content img').forEach(img => {
+                      img.style.cursor = "pointer";
+                      img.onclick = () => window.__showPreview(img.src);
+                    });
+                  });
                 },
 
                 // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]、[img0,img1:parallel]
@@ -317,17 +314,17 @@
                     
                     // 匹配并行图片占位符 [img0,img1:parallel]
                     const parallelImgRegex = /\[((?:img\d+,?)+):parallel\]/g;  // 修复此处
-                    while ((m = parallelImgRegex.exec(content)) !== null) {
-                        const indices = m[1].split(',').map(s => {
-                            const imgNum = s.trim().replace('img', '');  // 提取数字部分
-                            return parseInt(imgNum, 10);
-                        });
-                        indices.forEach(idx => {
-                            if (!Number.isNaN(idx)) used.add(idx);
-                        });
-                    }
+    while ((m = parallelImgRegex.exec(content)) !== null) {
+        const indices = m[1].split(',').map(s => {
+            const imgNum = s.trim().replace('img', '');  // 提取数字部分
+            return parseInt(imgNum, 10);
+        });
+        indices.forEach(idx => {
+            if (!Number.isNaN(idx)) used.add(idx);
+        });
+    }
 
-                    return images.filter((_, idx) => !used.has(idx));
+    return images.filter((_, idx) => !used.has(idx));
                 }
             },
             // 组件挂载时，如果不是首页则加载对应文章
