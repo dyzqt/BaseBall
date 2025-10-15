@@ -236,8 +236,6 @@
                     html = html.replace(/\n/g, '<br>');
                     // 去除首尾多余的换行
                     html = html.replace(/^(<br>)+|(<br>)+$/g, '');
-                    // 再次合并多余的 <br>，避免内容段落间距过大
-                    html = html.replace(/(?:<br>\s*){3,}/g, '<br><br>');
 
                     // 首先处理并行图片 [img0,img1:parallel] 或 [img0,img1,img2:parallel]
                     html = html.replace(/\[((?:img\d+,?)+):parallel\]/g, (match, imgList) => {
@@ -261,7 +259,7 @@
                         }
 
                         const imageElements = validImages.map(src =>
-                            `<div><img src="${src}" alt="文章图片" class="cursor-pointer" onclick="window.__showPreview('${src}')" onerror="this.style.display='none'"/></div>`
+                            `<div><img src="${src}" alt="文章图片" class="cursor-pointer" onclick="window.__showPreview('${src}')"/></div>`
                         ).join('');
 
                         const result = `<div class="grid ${gridClass} gap-4">${imageElements}</div>`;
