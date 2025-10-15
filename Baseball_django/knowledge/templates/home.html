@@ -37,6 +37,11 @@
             object-fit: cover;
             max-height: 16rem;
         }
+<<<<<<< HEAD
+=======
+        /* 保证导航内文字不换行为竖排 */
+        .no-wrap { white-space: nowrap; }
+>>>>>>> parent of 33d4de1 (dyzqt)
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -54,7 +59,44 @@
                             class="h-10 cursor-pointer hover:opacity-90 transition-opacity duration-200"
                             @click="selectTab('首页')"
                         >
+<<<<<<< HEAD
                         <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer">棒球知识库</p>
+=======
+                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
+                    </div>
+                    <!-- 桌面端：所有页面均显示logo与名称 -->
+                    <div class="mr-3 md:mr-6 hidden md:flex items-center space-x-2">
+                        <img
+                            src="/static/XK_log.jpg"
+                            alt="Logo"
+                            class="h-10 cursor-pointer hover:opacity-90 transition-opacity duration-200"
+                            @click="selectTab('首页')"
+                        >
+                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
+                    </div>
+                    <!-- 移动端文章菜单按钮（非首页显示） -->
+                    <button
+                        v-if="activeTab !== '首页'"
+                        @click="showMenu = true"
+                        class="md:hidden ml-auto mr-2 px-3 py-2 bg-blue-700 rounded hover:bg-blue-800 transition-colors duration-200 no-wrap"
+                    >文章</button>
+
+                    <!-- 标签滚动容器 -->
+                    <div class="flex-1 overflow-x-auto md:overflow-visible">
+                        <div class="flex flex-nowrap items-center space-x-3 md:space-x-6">
+                            <div class="hidden md:block"><!-- 占位使按钮不压缩 --></div>
+                            <button v-for="tab in tabs" :key="tab"
+                                    @click="selectTab(tab)"
+                                    class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 no-wrap"
+                                    :class="{'bg-blue-800 font-bold': activeTab===tab}">
+                                {{ tab }}
+                            </button>
+                            <!-- 我的时刻链接 -->
+                            <a href="/moments/" class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 text-white no-underline no-wrap">
+                                我的时刻
+                            </a>
+                        </div>
+>>>>>>> parent of 33d4de1 (dyzqt)
                     </div>
                     <button v-for="tab in tabs" :key="tab"
                             @click="selectTab(tab)"
@@ -177,7 +219,12 @@
                 articles: [], // 当前分类下的文章列表
                 activeArticle: null, // 当前选中的文章
                 previewImage: null,   // 当前放大的图片
+<<<<<<< HEAD
                 showPreview: false    // 是否显示预览层
+=======
+                showPreview: false,    // 是否显示预览层
+                showMenu: false // 是否显示菜单
+>>>>>>> parent of 33d4de1 (dyzqt)
             },
             methods: {
                 // 选择标签页
@@ -194,6 +241,12 @@
                 // 选择文章
                 selectArticle(article) {
                     this.activeArticle = article;
+<<<<<<< HEAD
+=======
+                    // 选择后关闭移动端菜单
+                    this.showMenu = false;
+                    this.$nextTick(() => this.bindArticleImageClicks());
+>>>>>>> parent of 33d4de1 (dyzqt)
                 },
 
                 // 按分类加载文章
@@ -214,12 +267,16 @@
                         this.showPreview = true;
                     };
                     // 文章渲染后，给所有文章内的图片绑定点击放大
+<<<<<<< HEAD
                   this.$nextTick(() => {
                     document.querySelectorAll('.article-content img').forEach(img => {
                       img.style.cursor = "pointer";
                       img.onclick = () => window.__showPreview(img.src);
                     });
                   });
+=======
+                    this.$nextTick(() => this.bindArticleImageClicks());
+>>>>>>> parent of 33d4de1 (dyzqt)
                 },
 
                 // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]、[img0,img1:parallel]
@@ -299,6 +356,25 @@
                     return html;
                 },
 
+<<<<<<< HEAD
+=======
+                // 统一为文章内容中的<img>绑定点击放大
+                bindArticleImageClicks() {
+                    // 确保预览函数存在
+                    if (!window.__showPreview) {
+                        window.__showPreview = (src) => {
+                            this.previewImage = src;
+                            this.showPreview = true;
+                        };
+                    }
+                    const imgs = document.querySelectorAll('.article-content img');
+                    imgs.forEach(img => {
+                        img.style.cursor = 'pointer';
+                        img.onclick = () => window.__showPreview(img.src);
+                    });
+                },
+
+>>>>>>> parent of 33d4de1 (dyzqt)
                 // 计算未在正文使用的图片
                 getUnusedImages(article) {
                     if (!article) return [];
