@@ -11,9 +11,9 @@
         .article-content {
             line-height: 1.6;
         }
-        .article-content p { margin: 0.25rem 0; }
-        .article-content ul, .article-content ol { margin: 0.25rem 0 0.25rem 1rem; }
-        .article-content li { margin: 0.125rem 0; }
+        .article-content p {
+            margin: 1rem 0;
+        }
         .article-content .grid {
             display: grid;
             margin: 1.5rem 0;
@@ -37,13 +37,6 @@
             object-fit: cover;
             max-height: 16rem;
         }
-        /* 保证导航内文字不换行为竖排 */
-        .no-wrap { white-space: nowrap; }
-        /* 过场遮罩层 */
-        .loading-overlay { z-index: 60; }
-        /* 自定义棒球加载动画 */
-        @keyframes ball-spin { to { transform: rotate(360deg); } }
-        .loading-ball { width: 48px; height: 48px; animation: ball-spin 1s linear infinite; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -52,51 +45,27 @@
         <!-- 顶部导航栏 -->
         <header class="bg-blue-600 text-white shadow-md">
             <div class="container mx-auto px-4">
-                <div class="flex items-center py-4 text-lg">
+                <div class="flex space-x-6 py-4 text-lg items-center">
                     <!-- Logo图片 - 点击返回首页 -->
-                    <!-- 移动端：仅在首页显示logo与名称 -->
-                    <div v-if="activeTab === '首页'" class="mr-3 md:mr-6 flex items-center space-x-2 md:hidden">
+                    <div class="mr-auto flex items-center space-x-2">
                         <img
                             src="/static/XK_log.jpg"
                             alt="Logo"
                             class="h-10 cursor-pointer hover:opacity-90 transition-opacity duration-200"
                             @click="selectTab('首页')"
                         >
-                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
+                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer">棒球知识库</p>
                     </div>
-                    <!-- 桌面端：所有页面均显示logo与名称 -->
-                    <div class="mr-3 md:mr-6 hidden md:flex items-center space-x-2">
-                        <img
-                            src="/static/XK_log.jpg"
-                            alt="Logo"
-                            class="h-10 cursor-pointer hover:opacity-90 transition-opacity duration-200"
-                            @click="selectTab('首页')"
-                        >
-                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
-                    </div>
-                    <!-- 移动端文章菜单按钮（非首页显示） -->
-                    <button
-                        v-if="activeTab !== '首页'"
-                        @click="showMenu = true"
-                        class="md:hidden ml-auto mr-2 px-3 py-2 bg-blue-700 rounded hover:bg-blue-800 transition-colors duration-200 no-wrap"
-                    >文章</button>
-
-                    <!-- 标签滚动容器 -->
-                    <div class="flex-1 overflow-x-auto md:overflow-visible">
-                        <div class="flex flex-nowrap items-center space-x-3 md:space-x-6">
-                            <div class="hidden md:block"><!-- 占位使按钮不压缩 --></div>
-                            <button v-for="tab in tabs" :key="tab"
-                                    @click="selectTab(tab)"
-                                    class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 no-wrap"
-                                    :class="{'bg-blue-800 font-bold': activeTab===tab}">
-                                {{ tab }}
-                            </button>
-                            <!-- 我的时刻链接 -->
-                            <a href="/moments/" @click.prevent="navigateTo('/moments/')" class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 text-white no-underline no-wrap">
-                                我的时刻
-                            </a>
-                        </div>
-                    </div>
+                    <button v-for="tab in tabs" :key="tab"
+                            @click="selectTab(tab)"
+                            class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700"
+                            :class="{'bg-blue-800 font-bold': activeTab===tab}">
+                        {{ tab }}
+                    </button>
+                    <!-- 我的时刻链接 -->
+                    <a href="/moments/" class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 text-white no-underline">
+                        我的时刻
+                    </a>
                 </div>
             </div>
         </header>
@@ -104,7 +73,7 @@
         <!-- 主要内容区域 - 保持不变 -->
         <div class="flex flex-1 overflow-hidden">
             <!-- 左侧文章列表 (非首页显示) -->
-            <aside v-if="activeTab !== '首页'" class="hidden md:block w-64 bg-white border-r border-gray-200 overflow-y-auto">
+            <aside v-if="activeTab !== '首页'" class="w-64 bg-white border-r border-gray-200 overflow-y-auto">
                 <div class="p-4">
                     <h2 class="text-lg font-bold mb-4 pb-2 border-b border-gray-200">{{ activeTab }}文章</h2>
                     <div v-if="articles.length === 0" class="text-gray-500 text-sm">暂无文章</div>
@@ -118,29 +87,8 @@
                 </div>
             </aside>
 
-            <!-- 移动端抽屉菜单：文章列表 -->
-            <div v-if="showMenu && activeTab !== '首页'" class="fixed inset-0 z-40 md:hidden">
-                <div class="absolute inset-0 bg-black bg-opacity-50" @click="showMenu = false"></div>
-                <div class="absolute left-0 top-0 h-full w-4/5 max-w-xs bg-white shadow-xl overflow-y-auto">
-                    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-                        <h2 class="text-lg font-bold">{{ activeTab }}文章</h2>
-                        <button @click="showMenu = false" class="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">关闭</button>
-                    </div>
-                    <div class="p-4">
-                        <div v-if="articles.length === 0" class="text-gray-500 text-sm">暂无文章</div>
-                        <div v-for="article in articles" :key="article.id"
-                             @click="selectArticle(article)"
-                             class="cursor-pointer p-3 mb-2 rounded transition-colors duration-200 hover:bg-gray-100"
-                             :class="{'bg-blue-50 border-l-4 border-blue-500': activeArticle?.id === article.id}">
-                            <h3 class="font-medium text-red-600">{{ article.title }}</h3>
-                            <p class="text-xs text-gray-500 mt-1">{{ article.created_at }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- 中心文章内容区域 -->
-            <main class="flex-1 overflow-y-auto bg-gray-50 p-6 md:ml-0">
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
                 <!-- 首页内容 -->
                 <div v-if="activeTab === '首页'" class="max-w-3xl mx-auto">
                     <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">棒球知识库</h1>
@@ -216,43 +164,6 @@
              @click="showPreview = false">
             <img :src="previewImage" class="max-w-full max-h-full rounded-lg shadow-lg" />
         </div>
-        <!-- 全局过场加载层 -->
-        <div v-if="isLoading" class="fixed inset-0 loading-overlay bg-white bg-opacity-80 flex items-center justify-center px-6">
-            <div class="bg-white rounded-lg shadow-lg p-5 w-full max-w-sm text-center">
-                <div class="flex items-center justify-center mb-3">
-                    <!-- 棒球加载动画 -->
-                    <svg class="loading-ball mr-3" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#3b82f6"/>
-                                <stop offset="100%" stop-color="#1d4ed8"/>
-                            </linearGradient>
-                        </defs>
-                        <circle cx="32" cy="32" r="28" fill="url(#g)"/>
-                        <!-- 缝线 -->
-                        <path d="M16 20 C24 28, 40 28, 48 20" fill="none" stroke="#fff" stroke-width="2"/>
-                        <path d="M16 44 C24 36, 40 36, 48 44" fill="none" stroke="#fff" stroke-width="2"/>
-                        <!-- 小短线 -->
-                        <g stroke="#fff" stroke-width="2">
-                            <path d="M22 24 l-4 -4"/>
-                            <path d="M28 26 l-4 -4"/>
-                            <path d="M34 26 l4 -4"/>
-                            <path d="M40 24 l4 -4"/>
-                            <path d="M22 40 l-4 4"/>
-                            <path d="M28 38 l-4 4"/>
-                            <path d="M34 38 l4 4"/>
-                            <path d="M40 40 l4 4"/>
-                        </g>
-                    </svg>
-                    <span class="text-gray-800">{{ loadingMessage }}</span>
-                </div>
-                <div v-if="loadError" class="text-red-600 text-sm mb-2">{{ loadErrorMsg }}</div>
-                <div v-if="loadError" class="flex justify-center space-x-3">
-                    <button @click="retryLastAction" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">重试</button>
-                    <button @click="stopLoading" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">关闭</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     {% endverbatim %}
@@ -266,39 +177,23 @@
                 articles: [], // 当前分类下的文章列表
                 activeArticle: null, // 当前选中的文章
                 previewImage: null,   // 当前放大的图片
-                showPreview: false,    // 是否显示预览层
-                showMenu: false, // 是否显示菜单
-                // 过场加载
-                isLoading: false,
-                loadingMessage: '正在加载，请稍候…',
-                loadError: false,
-                loadErrorMsg: '',
-                _loadingTimer: null,
-                lastAction: null
+                showPreview: false    // 是否显示预览层
             },
             methods: {
                 // 选择标签页
                 selectTab(tab) {
-                    this.startLoading('正在加载，请稍候…', () => this.selectTab(tab));
                     this.activeTab = tab;
                     this.activeArticle = null;
-                    this.showMenu = false;
 
                     // 如果不是首页，加载对应分类的文章
                     if (tab !== '首页') {
                         this.loadArticlesByCategory(tab);
-                    } else {
-                        this.$nextTick(() => this.stopLoading());
                     }
                 },
 
                 // 选择文章
                 selectArticle(article) {
-                    this.startLoading('正在加载，请稍候…', () => this.selectArticle(article));
                     this.activeArticle = article;
-                    // 选择后关闭移动端菜单
-                    this.showMenu = false;
-                    this.$nextTick(() => { this.bindArticleImageClicks(); this.stopLoading(); });
                 },
 
                 // 按分类加载文章
@@ -310,11 +205,8 @@
                         .catch(err => {
                             console.error('加载文章失败:', err);
                             this.articles = [];
-                            this.failLoading('页面加载失败，请稍后重试');
                         });
-                    // if (this.activeTab !== '首页') {
-                    //     this.loadArticlesByCategory(this.activeTab);
-                    // }
+                    // 移除错误的自调用以避免无限请求
 
                     // 给 renderContent 里的图片点击用
                     window.__showPreview = (src) => {
@@ -322,7 +214,12 @@
                         this.showPreview = true;
                     };
                     // 文章渲染后，给所有文章内的图片绑定点击放大
-                    this.$nextTick(() => { this.bindArticleImageClicks(); this.stopLoading(); });
+                  this.$nextTick(() => {
+                    document.querySelectorAll('.article-content img').forEach(img => {
+                      img.style.cursor = "pointer";
+                      img.onclick = () => window.__showPreview(img.src);
+                    });
+                  });
                 },
 
                 // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]、[img0,img1:parallel]
@@ -332,10 +229,15 @@
                     const images = Array.isArray(article.images) ? article.images : [];
                     let html = article.content;
 
-                    // 若内容非HTML（无标签），才将换行符转换为 <br>，避免和段落/列表重复间距
-                    if (!/[<][a-zA-Z]+[\s>]/.test(html)) {
-                        html = html.replace(/\n/g, '<br>');
-                    }
+                    // 将换行符转换为 <br>
+                    // 规范化换行，避免空白过大：将3个及以上连续换行压缩为2个
+                    html = html.replace(/\r\n/g, '\n');
+                    html = html.replace(/\n{3,}/g, '\n\n');
+                    html = html.replace(/\n/g, '<br>');
+                    // 去除首尾多余的换行
+                    html = html.replace(/^(<br>)+|(<br>)+$/g, '');
+                    // 再次合并多余的 <br>，避免内容段落间距过大
+                    html = html.replace(/(?:<br>\s*){3,}/g, '<br><br>');
 
                     // 首先处理并行图片 [img0,img1:parallel] 或 [img0,img1,img2:parallel]
                     html = html.replace(/\[((?:img\d+,?)+):parallel\]/g, (match, imgList) => {
@@ -359,7 +261,7 @@
                         }
 
                         const imageElements = validImages.map(src =>
-                            `<div><img src="${src}" alt="文章图片" style="cursor:pointer" onclick="window.__showPreview('${src}')" /></div>`
+                            `<div><img src="${src}" alt="文章图片" class="cursor-pointer" onclick="window.__showPreview('${src}')" onerror="this.style.display='none'"/></div>`
                         ).join('');
 
                         const result = `<div class="grid ${gridClass} gap-4">${imageElements}</div>`;
@@ -399,62 +301,6 @@
                     return html;
                 },
 
-                // 统一为文章内容中的<img>绑定点击放大
-                bindArticleImageClicks() {
-                    // 确保预览函数存在
-                    if (!window.__showPreview) {
-                        window.__showPreview = (src) => {
-                            this.previewImage = src;
-                            this.showPreview = true;
-                        };
-                    }
-                    const imgs = document.querySelectorAll('.article-content img');
-                    imgs.forEach(img => {
-                        img.style.cursor = 'pointer';
-                        img.onclick = () => window.__showPreview(img.src);
-                    });
-                },
-
-                // 导航到站内其它地址（展示过场）
-                navigateTo(url) {
-                    this.startLoading('正在跳转，请稍候…', () => this.navigateTo(url));
-                    setTimeout(() => { window.location.href = url; }, 50);
-                },
-
-                // 过场控制
-                startLoading(message = '正在加载，请稍候…', retryFn = null) {
-                    this.loadingMessage = message;
-                    this.isLoading = true;
-                    this.loadError = false;
-                    this.loadErrorMsg = '';
-                    this.lastAction = retryFn;
-                    if (this._loadingTimer) clearTimeout(this._loadingTimer);
-                    this._loadingTimer = setTimeout(() => {
-                        this.failLoading('加载超时（>60秒），请检查网络或稍后重试');
-                    }, 60000);
-                },
-                stopLoading() {
-                    if (this._loadingTimer) clearTimeout(this._loadingTimer);
-                    this._loadingTimer = null;
-                    this.isLoading = false;
-                    this.loadError = false;
-                    this.loadErrorMsg = '';
-                },
-                failLoading(msg) {
-                    if (this._loadingTimer) clearTimeout(this._loadingTimer);
-                    this._loadingTimer = null;
-                    this.isLoading = true;
-                    this.loadError = true;
-                    this.loadErrorMsg = msg || '加载失败';
-                },
-                retryLastAction() {
-                    if (typeof this.lastAction === 'function') {
-                        const fn = this.lastAction;
-                        this.startLoading(this.loadingMessage, fn);
-                        this.$nextTick(() => fn());
-                    }
-                },
-
                 // 计算未在正文使用的图片
                 getUnusedImages(article) {
                     if (!article) return [];
@@ -473,25 +319,21 @@
 
                     // 匹配并行图片占位符 [img0,img1:parallel]
                     const parallelImgRegex = /\[((?:img\d+,?)+):parallel\]/g;  // 修复此处
-                    while ((m = parallelImgRegex.exec(content)) !== null) {
-                        const indices = m[1].split(',').map(s => {
-                            const imgNum = s.trim().replace('img', '');  // 提取数字部分
-                            return parseInt(imgNum, 10);
-                        });
-                        indices.forEach(idx => {
-                            if (!Number.isNaN(idx)) used.add(idx);
-                        });
-                    }
+    while ((m = parallelImgRegex.exec(content)) !== null) {
+        const indices = m[1].split(',').map(s => {
+            const imgNum = s.trim().replace('img', '');  // 提取数字部分
+            return parseInt(imgNum, 10);
+        });
+        indices.forEach(idx => {
+            if (!Number.isNaN(idx)) used.add(idx);
+        });
+    }
 
-                    return images.filter((_, idx) => !used.has(idx));
+    return images.filter((_, idx) => !used.has(idx));
                 }
             },
             // 组件挂载时，如果不是首页则加载对应文章
-            mounted() {
-                if (this.activeTab !== '首页') {
-                    this.loadArticlesByCategory(this.activeTab);
-                }
-            }
+            mounted() {}
         });
     </script>
 </body>
