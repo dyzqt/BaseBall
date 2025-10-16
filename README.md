@@ -13,7 +13,7 @@ python manage.py runserver 启动Django
 Quit the server with CTRL-BREAK.说明启动成功
 
 运行数据库迁移命令来应用模型更改：
-cd D:\其他\Code\Vue\BaseBall\Baseball_django # 进入项目目录
+cd Baseball_django # 进入项目目录
 python manage.py makemigrations
 python manage.py migrate
 
@@ -27,7 +27,7 @@ venv\\Scripts\\activate
 cd Baseball_django
 python manage.py runserver 0.0.0.0:8000
 
-打开D:\其他\Code\Tools的ngrok.exe
+打开ngrok.exe
 输入 ngrok http 8000
 如果弹出 Forwarding      https://quyen-unsanctified-francina.ngrok-free.dev -> http://localhost:8000
 则外人也可以通过https://quyen-unsanctified-francina.ngrok-free.dev 访问
