@@ -29,7 +29,7 @@ def article_list(request):
 # 按分类获取文章
 def articles_by_category(request, category):
     # 中文 -> 英文映射
-    category_map = {'训练': 'training', '规则': 'rules'}
+    category_map = {'训练': 'training', '规则': 'rules', '其他': 'other'}
     category_en = category_map.get(category, 'training')
 
     if not category_en:

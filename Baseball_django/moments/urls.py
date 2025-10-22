@@ -6,6 +6,7 @@ app_name = 'moments'
 
 urlpatterns = [
     path('', views.moments_list, name='moments_list'),
+    path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('create/', views.create_moment, name='create_moment'),

@@ -145,8 +145,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="fas fa-book"></i> 知识库
+                        <a class="nav-link" href="{% url 'moments:leaderboard' %}">
+                            <i class="fas fa-trophy"></i> 排行榜
                         </a>
                     </li>
                     {% if user.is_authenticated %}

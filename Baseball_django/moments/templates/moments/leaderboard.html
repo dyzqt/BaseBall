@@ -1,0 +1,77 @@
+{% extends 'moments/base.html' %}
+
+{% block title %}我的时刻 - 排行榜{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card moment-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>排行榜</h5>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'moments:moments_list' %}"><i class="fas fa-home"></i> 返回首页</a>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 col-lg-3 mb-4">
+            <h6 class="text-muted mb-3"><i class="fas fa-comments me-1"></i> 评论最多</h6>
+            <ol class="ps-3">
+              {% for m in top_by_comments %}
+              <li class="mb-2">
+                <a href="{% url 'moments:moment_detail' m.id %}">{{ m.content|truncatechars:32 }}</a>
+                <small class="text-muted">（{{ m.comments_count }}）</small>
+              </li>
+              {% empty %}
+              <li class="text-muted">暂无</li>
+              {% endfor %}
+            </ol>
+          </div>
+
+          <div class="col-md-6 col-lg-3 mb-4">
+            <h6 class="text-muted mb-3"><i class="fas fa-eye me-1"></i> 观看量最多</h6>
+            <ol class="ps-3">
+              {% for m in top_by_views %}
+              <li class="mb-2">
+                <a href="{% url 'moments:moment_detail' m.id %}">{{ m.content|truncatechars:32 }}</a>
+                <small class="text-muted">（{{ m.views }}）</small>
+              </li>
+              {% empty %}
+              <li class="text-muted">暂无</li>
+              {% endfor %}
+            </ol>
+          </div>
+
+          <div class="col-md-6 col-lg-3 mb-4">
+            <h6 class="text-muted mb-3"><i class="fas fa-heart me-1"></i> 点赞最多</h6>
+            <ol class="ps-3">
+              {% for m in top_by_likes %}
+              <li class="mb-2">
+                <a href="{% url 'moments:moment_detail' m.id %}">{{ m.content|truncatechars:32 }}</a>
+                <small class="text-muted">（{{ m.likes_count }}）</small>
+              </li>
+              {% empty %}
+              <li class="text-muted">暂无</li>
+              {% endfor %}
+            </ol>
+          </div>
+
+          <div class="col-md-6 col-lg-3 mb-4">
+            <h6 class="text-muted mb-3"><i class="fas fa-clock me-1"></i> 最新发布</h6>
+            <ol class="ps-3">
+              {% for m in latest_ten %}
+              <li class="mb-2">
+                <a href="{% url 'moments:moment_detail' m.id %}">{{ m.content|truncatechars:32 }}</a>
+                <small class="text-muted">（{{ m.created_at|date:'m-d H:i' }}）</small>
+              </li>
+              {% empty %}
+              <li class="text-muted">暂无</li>
+              {% endfor %}
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

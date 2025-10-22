@@ -72,12 +72,34 @@ def moments_list(request):
     total_users = User.objects.count()
     total_likes = sum(m.likes.count() for m in Moment.objects.all())  # 点赞总数
 
+    # 排行榜（各取前10条）
+    top_by_comments = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-comments_count', '-created_at')[:10]
+    )
+    top_by_views = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-views', '-created_at')[:10]
+    )
+    top_by_likes = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-likes_count', '-created_at')[:10]
+    )
+    latest_four = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-created_at')[:10]
+    )
+
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
         'total_moments': total_moments,
         'total_users': total_users,
         'total_likes': total_likes,
+        'top_by_comments': top_by_comments,
+        'top_by_views': top_by_views,
+        'top_by_likes': top_by_likes,
+        'latest_four': latest_four,
     }
     return render(request, 'moments/moments_list.html', context)
 
@@ -217,3 +239,32 @@ def profile_view(request):
     }
 
     return render(request, 'moments/profile.html', context)
+
+
+@login_required
+def leaderboard(request):
+    """排行榜页面：评论最多、观看量最多、点赞最多、最新发布"""
+    top_by_comments = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-comments_count', '-created_at')[:10]
+    )
+    top_by_views = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-views', '-created_at')[:10]
+    )
+    top_by_likes = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-likes_count', '-created_at')[:10]
+    )
+    latest_ten = (
+        Moment.objects.filter(is_public=True)
+        .order_by('-created_at')[:10]
+    )
+
+    context = {
+        'top_by_comments': top_by_comments,
+        'top_by_views': top_by_views,
+        'top_by_likes': top_by_likes,
+        'latest_ten': latest_ten,
+    }
+    return render(request, 'moments/leaderboard.html', context)
