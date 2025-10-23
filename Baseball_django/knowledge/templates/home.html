@@ -486,38 +486,11 @@
                                 </div>
                             </transition>
                         </div>
-
-                        <!-- 统计信息区域 -->
-                        <div class="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8">
-                            <h3 class="text-2xl font-bold text-center mb-6 text-gray-800">知识库统计</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                                <div class="bg-white rounded-lg p-6 shadow-md">
-                                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ getTotalArticles() }}</div>
-                                    <div class="text-gray-600">总文章数</div>
-                                </div>
-                                <div class="bg-white rounded-lg p-6 shadow-md">
-                                    <div class="text-3xl font-bold text-green-600 mb-2">3</div>
-                                    <div class="text-gray-600">知识分类</div>
-                                </div>
-                                <div class="bg-white rounded-lg p-6 shadow-md">
-                                    <div class="text-3xl font-bold text-purple-600 mb-2">∞</div>
-                                    <div class="text-gray-600">学习可能</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </transition>
 
                 <!-- 文章内容区域 -->
-                <div v-else-if="activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
-                    <!-- 调试信息 -->
-                    <div style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; font-size: 12px;">
-                        调试: activeArticle = {{ activeArticle ? '存在' : '不存在' }}
-                        <br>标题: {{ activeArticle?.title }}
-                        <br>内容长度: {{ activeArticle?.content?.length || 0 }}
-                        <br>articleContent长度: {{ articleContent?.length || 0 }}
-                        <br>articleContent内容: {{ articleContent }}
-                    </div>
+                <div v-if="activeTab !== '首页' && activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
                     <h1 class="text-2xl font-bold text-gray-800 mb-4">{{ activeArticle.title }}</h1>
                     <div class="flex items-center text-sm text-gray-500 mb-6">
                         <span>{{ activeArticle.created_at }}</span>
@@ -525,7 +498,10 @@
                         <span>{{ activeTab }}</span>
                     </div>
                     <div class="max-w-none text-gray-700 overflow-hidden article-content">
-                        <div v-html="articleContent" class="space-y-4"></div>
+                        <div v-if="articleContent" v-html="articleContent" class="space-y-4"></div>
+                        <div v-else class="text-red-500">
+                            内容为空！请检查控制台日志。
+                        </div>
                     </div>
 
                     <!-- 显示未在正文中使用的图片 -->
@@ -551,7 +527,7 @@
                 </div>
 
                 <!-- 未选中文章时显示 -->
-                <div v-else-if="activeTab !== '首页'" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-12 text-center">
+                <div v-else-if="activeTab !== '首页' && !activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-12 text-center">
                     <p class="text-gray-500 text-lg">请从左侧列表中选择一篇文章查看</p>
                 </div>
             </main>
@@ -878,8 +854,22 @@
                     }
 
                     return images.filter((_, idx) => !used.has(idx));
+                },
+
+                // 🎯 加载所有文章
+                loadAllArticles() {
+                    axios.get('/articles/')
+                        .then(res => {
+                            this.allArticles = res.data;
+                            console.log('所有文章加载成功:', this.allArticles.length, '篇');
+                        })
+                        .catch(err => {
+                            console.error('加载文章统计失败:', err);
+                            this.allArticles = [];
+                        });
                 }
             },
+
             // 组件挂载时，如果不是首页则加载对应文章
             mounted() {
                 // 🎯 开场动画自动隐藏 - 简化时间
@@ -893,21 +883,8 @@
                 if (this.activeTab !== '首页') {
                     this.loadArticlesByCategory(this.activeTab);
                 }
-            },
-
-            // 🎯 加载所有文章
-            loadAllArticles() {
-                axios.get('/articles/')
-                    .then(res => {
-                        this.allArticles = res.data;
-                        console.log('所有文章加载成功:', this.allArticles.length, '篇');
-                    })
-                    .catch(err => {
-                        console.error('加载文章统计失败:', err);
-                        this.allArticles = [];
-                    });
             }
-        });
+    });
     </script>
 </body>
 </html>
