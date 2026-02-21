@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>棒球知识库</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- 优先使用线上Vue/axios（解决 CDN 被墙 / 代理失败导致 Vue 未定义的问题） -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
     <style>
         .article-content {
             line-height: 1.6;
@@ -48,91 +49,75 @@
         /* 🎯 棒球开场动画 */
         .baseball-intro {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+            left: 1.5rem;
+            bottom: 1.5rem;
+            width: auto;
+            height: auto;
+            padding: 0.75rem 1rem;
+            background: rgba(15, 23, 42, 0.85);
+            border-radius: 9999px;
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            gap: 0.75rem;
+            overflow: visible;
         }
 
         .baseball-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            display: flex;
+            align-items: center;
         }
 
+        /* 进场球：白描边圆 + 两条白色虚线缝线（与参考图一致） */
         .baseball {
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle at 30% 30%, #ffffff, #f8f9fa, #e5e7eb);
-            border-radius: 50%;
+            width: 56px;
+            height: 56px;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 
-                0 0 20px rgba(0, 0, 0, 0.3),
-                inset -5px -5px 10px rgba(0, 0, 0, 0.1),
-                inset 5px 5px 10px rgba(255, 255, 255, 0.8);
             animation: baseballFlyIn 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
 
-        .baseball::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
+        .baseball svg {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: 
-                linear-gradient(45deg, transparent 40%, #dc2626 40%, #dc2626 60%, transparent 60%),
-                linear-gradient(-45deg, transparent 40%, #dc2626 40%, #dc2626 60%, transparent 60%);
-            transform: translate(-50%, -50%);
-            animation: baseballStitch 0.3s ease-in-out 0.8s forwards;
+            display: block;
         }
 
-        .baseball::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: 
-                linear-gradient(135deg, transparent 40%, #dc2626 40%, #dc2626 60%, transparent 60%),
-                linear-gradient(-135deg, transparent 40%, #dc2626 40%, #dc2626 60%, transparent 60%);
-            transform: translate(-50%, -50%);
-            animation: baseballStitch 0.3s ease-in-out 1s forwards;
+        .baseball .ball-circle {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+
+        .baseball .ball-seam {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 1.5;
+            stroke-dasharray: 4 3;
         }
 
         .title-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            position: static;
+            transform: none;
             color: white;
-            font-size: 2.5rem;
+            font-size: 1.5rem;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             opacity: 0;
             animation: titleFadeIn 1s ease-out 1.5s forwards;
+            white-space: nowrap;
         }
 
         .skip-hint {
-            position: absolute;
-            bottom: 20%;
-            left: 50%;
-            transform: translateX(-50%);
+            position: static;
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.875rem;
             opacity: 0;
+            margin-left: 0.75rem;
             animation: titleFadeIn 1s ease-out 2s forwards;
             cursor: pointer;
         }
@@ -310,6 +295,20 @@
             opacity: 0;
             transform: translateX(-50px);
         }
+
+        /* 顶部标签按钮整体缩小，方便 5 个左右标签挤在一行 */
+        .nav-tabs-bar > button,
+        .nav-tabs-bar > a {
+            font-size: 0.85rem;
+            padding: 0.35rem 0.75rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 640px) {
+            .nav-tabs-bar {
+                column-gap: 0.25rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -318,7 +317,13 @@
         <!-- 🎯 棒球开场动画 -->
         <div v-show="showIntro" class="baseball-intro" @click="skipIntro">
             <div class="baseball-container">
-                <div class="baseball"></div>
+                <div class="baseball">
+                    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                        <circle class="ball-circle" cx="32" cy="32" r="28"/>
+                        <path class="ball-seam" d="M 10 32 Q 32 14, 54 32"/>
+                        <path class="ball-seam" d="M 10 32 Q 32 50, 54 32"/>
+                    </svg>
+                </div>
                 <div class="title-text">棒球知识库</div>
                 <div class="skip-hint">点击任意位置跳过</div>
             </div>
@@ -341,9 +346,9 @@
                             src="/static/XK_log.jpg"
                             alt="Logo"
                             class="h-10 cursor-pointer hover:opacity-90 transition-opacity duration-200"
-                            @click="selectTab('首页')"
+                            @click="selectTabWithTransition('首页')"
                         >
-                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
+                        <p @click="selectTabWithTransition('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
                     </div>
                     <!-- 桌面端：所有页面均显示logo与名称 -->
                     <div class="mr-3 md:mr-6 hidden md:flex items-center space-x-2">
@@ -351,9 +356,9 @@
                             src="/static/XK_log.jpg"
                             alt="Logo"
                             class="h-10 cursor-pointer hover:opacity-90 transition-opacity duration-200"
-                            @click="selectTab('首页')"
+                            @click="selectTabWithTransition('首页')"
                         >
-                        <p @click="selectTab('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
+                        <p @click="selectTabWithTransition('首页')" class="text-xl font-bold cursor-pointer no-wrap">棒球知识库</p>
                     </div>
                     <!-- 移动端文章菜单按钮（非首页显示） -->
                     <button
@@ -364,10 +369,10 @@
 
                     <!-- 标签滚动容器 -->
                     <div class="flex-1 overflow-x-auto md:overflow-visible">
-                        <div class="flex flex-nowrap items-center space-x-3 md:space-x-6">
+                            <div class="flex flex-nowrap items-center space-x-3 md:space-x-6 nav-tabs-bar">
                             <div class="hidden md:block"><!-- 占位使按钮不压缩 --></div>
                             <button v-for="tab in tabs" :key="tab"
-                                    @click="selectTab(tab)"
+                                    @click="selectTabWithTransition(tab)"
                                     class="px-3 py-1 rounded transition-colors duration-200 hover:bg-blue-700 no-wrap"
                                     :class="{'bg-blue-800 font-bold': activeTab===tab}">
                                 {{ tab }}
@@ -389,10 +394,10 @@
                 <div class="p-4">
                     <h2 class="text-lg font-bold mb-4 pb-2 border-b border-gray-200">{{ activeTab }}文章</h2>
                     <div v-if="articles.length === 0" class="text-gray-500 text-sm">暂无文章</div>
-                    <div v-for="article in articles" :key="article.id"
+                        <div v-for="article in articles" :key="article.id"
                          @click="selectArticle(article)"
                          class="cursor-pointer p-3 mb-2 rounded transition-colors duration-200 hover:bg-gray-100"
-                         :class="{'bg-blue-50 border-l-4 border-blue-500': activeArticle?.id === article.id}">
+                         :class="activeArticle && activeArticle.id === article.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''">
                         <h3 class="font-medium text-red-600">{{ article.title }}</h3>
                         <p class="text-xs text-gray-500 mt-1">{{ article.created_at }}</p>
                     </div>
@@ -412,7 +417,7 @@
                         <div v-for="article in articles" :key="article.id"
                              @click="selectArticle(article)"
                              class="cursor-pointer p-3 mb-2 rounded transition-colors duration-200 hover:bg-gray-100"
-                             :class="{'bg-blue-50 border-l-4 border-blue-500': activeArticle?.id === article.id}">
+                             :class="activeArticle && activeArticle.id === article.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''">
                             <h3 class="font-medium text-red-600">{{ article.title }}</h3>
                             <p class="text-xs text-gray-500 mt-1">{{ article.created_at }}</p>
                         </div>
@@ -428,7 +433,7 @@
                         <!-- 英雄区域 -->
                         <div class="hero-section rounded-2xl shadow-2xl p-8 mb-8 text-white relative overflow-hidden">
                             <div class="relative z-10 text-center">
-                                <h1 class="text-5xl font-bold mb-4 pulse-animation">⚾ 棒球知识库</h1>
+                                <h1 class="text-3xl md:text-5xl font-bold mb-4 pulse-animation">⚾ 棒球知识库</h1>
                                 <p class="text-xl mb-6 opacity-90">Baseball Knowledge Base</p>
                                 <p class="text-lg opacity-80 max-w-2xl mx-auto">
                                     这里汇集了棒球的规则、训练方法等专业知识，帮助您更好地了解和学习棒球运动。
@@ -490,7 +495,8 @@
                 </transition>
 
                 <!-- 文章内容区域 -->
-                <div v-if="activeTab !== '首页' && activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
+                <transition name="fade" mode="out-in">
+                    <div v-if="activeTab !== '首页' && activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8 min-h-[400px]" key="article">
                     <h1 class="text-2xl font-bold text-gray-800 mb-4">{{ activeArticle.title }}</h1>
                     <div class="flex items-center text-sm text-gray-500 mb-6">
                         <span>{{ activeArticle.created_at }}</span>
@@ -509,7 +515,7 @@
                         <h3 class="text-lg font-semibold mb-4">相关图片</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div v-for="(image, index) in getUnusedImages(activeArticle)" :key="index" class="bg-gray-100 rounded-lg overflow-hidden">
-                                <img :src="image" alt="文章图片" class="w-full h-auto object-cover" />
+                                <img :src="image" alt="文章图片" class="w-full h-auto object-cover aspect-[4/3]" loading="lazy" />
                             </div>
                         </div>
                     </div>
@@ -525,11 +531,14 @@
                         </div>
                     </div>
                 </div>
+                </transition>
 
                 <!-- 未选中文章时显示 -->
-                <div v-else-if="activeTab !== '首页' && !activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-12 text-center">
-                    <p class="text-gray-500 text-lg">请从左侧列表中选择一篇文章查看</p>
-                </div>
+                <transition name="fade" mode="out-in">
+                    <div v-if="activeTab !== '首页' && !activeArticle" class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-12 text-center" key="no-article">
+                        <p class="text-gray-500 text-lg">请从左侧列表中选择一篇文章查看</p>
+                    </div>
+                </transition>
             </main>
         </div>
         <!-- 图片预览层 -->
@@ -546,16 +555,16 @@
                     <svg class="loading-ball mr-3" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#3b82f6"/>
-                                <stop offset="100%" stop-color="#1d4ed8"/>
+                                <stop offset="0%" stop-color="#ffffff"/>
+                                <stop offset="100%" stop-color="#e5e7eb"/>
                             </linearGradient>
                         </defs>
                         <circle cx="32" cy="32" r="28" fill="url(#g)"/>
                         <!-- 缝线 -->
-                        <path d="M16 20 C24 28, 40 28, 48 20" fill="none" stroke="#fff" stroke-width="2"/>
-                        <path d="M16 44 C24 36, 40 36, 48 44" fill="none" stroke="#fff" stroke-width="2"/>
+                        <path d="M16 20 C24 28, 40 28, 48 20" fill="none" stroke="#dc2626" stroke-width="2"/>
+                        <path d="M16 44 C24 36, 40 36, 48 44" fill="none" stroke="#dc2626" stroke-width="2"/>
                         <!-- 小短线 -->
-                        <g stroke="#fff" stroke-width="2">
+                        <g stroke="#dc2626" stroke-width="2">
                             <path d="M22 24 l-4 -4"/>
                             <path d="M28 26 l-4 -4"/>
                             <path d="M34 26 l4 -4"/>
@@ -580,143 +589,159 @@
 
     {% endverbatim %}
 
+    <!-- 开场动画兜底：即使 Vue 加载失败，也在几秒后自动隐藏 -->
     <script>
+        window.addEventListener('load', function () {
+            var intro = document.querySelector('.baseball-intro');
+            if (!intro) return;
+            // 点击也可以直接关闭
+            intro.addEventListener('click', function () {
+                intro.style.display = 'none';
+            });
+            // 最多显示 3 秒
+            setTimeout(function () {
+                if (intro && intro.style.display !== 'none') {
+                    intro.style.display = 'none';
+                }
+            }, 3000);
+        });
+    </script>
+
+    <script>
+        // 防御：如果 Vue 没有成功加载，就不要执行下面的代码，避免报错
+        if (window.Vue) {
         new Vue({
             el: '#app',
             data: {
-                tabs: ['首页', '训练', '规则', '其他'], // 标签页列表，可以后续添加更多
-                activeTab: '首页', // 当前选中的标签页
-                articles: [], // 当前分类下的文章列表
-                activeArticle: null, // 当前选中的文章
-                articleContent: '', // 当前文章的内容HTML
-                previewImage: null,   // 当前放大的图片
-                showPreview: false,    // 是否显示预览层
-                showMenu: false, // 是否显示菜单
-                // 过场加载
+                tabs: ['首页', '训练', '规则', '其他'],
+                activeTab: '首页',
+                articles: [],
+                activeArticle: null,
+                articleContent: '',
+                previewImage: null,
+                showPreview: false,
+                showMenu: false,
                 isLoading: false,
                 loadingMessage: '正在加载，请稍候…',
                 loadError: false,
                 loadErrorMsg: '',
                 _loadingTimer: null,
                 lastAction: null,
-                // 🎯 动画控制
-                showIntro: true, // 显示开场动画
-                showTransition: false, // 显示页面切换动画
-                allArticles: [] // 存储所有文章用于统计
+                showIntro: true,
+                showTransition: false,
+                allArticles: []
             },
             methods: {
-                // 🎯 带转场效果的标签页选择
-                selectTabWithTransition(tab) {
-                    if (tab === this.activeTab) return;
-                    
-                    this.showTransition = true;
-                    setTimeout(() => {
-                        this.selectTab(tab);
-                        setTimeout(() => {
-                            this.showTransition = false;
+                selectTabWithTransition: function (tab) {
+                    var self = this;
+                    if (tab === self.activeTab) return;
+                    self.showTransition = true;
+                    setTimeout(function () {
+                        self.selectTab(tab);
+                        setTimeout(function () {
+                            self.showTransition = false;
                         }, 400);
                     }, 200);
                 },
 
-                // 选择标签页
-                selectTab(tab) {
-                    this.startLoading('正在加载，请稍候…', () => this.selectTab(tab));
-                    this.activeTab = tab;
-                    this.activeArticle = null;
-                    this.showMenu = false;
+                selectTab: function (tab) {
+                    var self = this;
+                    self.startLoading('正在加载，请稍候…', function () { self.selectTab(tab); });
+                    self.activeTab = tab;
+                    self.activeArticle = null;
+                    self.showMenu = false;
 
-                    // 如果不是首页，加载对应分类的文章
                     if (tab !== '首页') {
-                        this.loadArticlesByCategory(tab);
+                        self.loadArticlesByCategory(tab);
                     } else {
-                        this.$nextTick(() => this.stopLoading());
+                        self.$nextTick(function () { self.stopLoading(); });
                     }
                 },
 
-                // 🎯 获取总文章数
-                getTotalArticles() {
+                getTotalArticles: function () {
                     return this.allArticles.length;
                 },
 
-                // 🎯 跳过开场动画
-                skipIntro() {
+                skipIntro: function () {
                     this.showIntro = false;
                 },
 
-                // 选择文章
-                selectArticle(article) {
+                selectArticle: function (article) {
+                    var self = this;
                     console.log('selectArticle called with:', article);
-                    this.startLoading('正在加载，请稍候…', () => this.selectArticle(article));
-                    this.activeArticle = article;
-                    this.articleContent = this.renderContent(article);
-                    console.log('articleContent set to:', this.articleContent);
-                    // 选择后关闭移动端菜单
-                    this.showMenu = false;
-                    this.$nextTick(() => { this.bindArticleImageClicks(); this.stopLoading(); });
+                    self.startLoading('正在加载，请稍候…', function () { self.selectArticle(article); });
+                    self.activeArticle = article;
+                    self.articleContent = self.renderContent(article);
+                    console.log('articleContent set to:', self.articleContent);
+                    self.showMenu = false;
+                    self.$nextTick(function () {
+                        self.bindArticleImageClicks();
+                        self.stopLoading();
+                    });
                 },
 
-                // 按分类加载文章
-                loadArticlesByCategory(category) {
+                loadArticlesByCategory: function (category) {
+                    var self = this;
                     console.log('正在加载分类文章:', category);
-                    axios.get(`/articles/${category}/`)
-                        .then(res => {
-                            this.articles = res.data;
-                            console.log('分类文章加载成功:', category, this.articles.length, '篇');
-                            // 自动选中第一篇文章，便于直接展示内容
-                            this.activeArticle = Array.isArray(this.articles) && this.articles.length > 0 ? this.articles[0] : null;
-                            if (this.activeArticle) {
-                                this.articleContent = this.renderContent(this.activeArticle);
-                                console.log('自动选中文章内容设置完成:', this.articleContent);
+                    axios.get('/articles/' + category + '/')
+                        .then(function (res) {
+                            self.articles = res.data;
+                            console.log('分类文章加载成功:', category, self.articles.length, '篇');
+                            self.activeArticle = Array.isArray(self.articles) && self.articles.length > 0 ? self.articles[0] : null;
+                            if (self.activeArticle) {
+                                self.articleContent = self.renderContent(self.activeArticle);
+                                console.log('自动选中文章内容设置完成:', self.articleContent);
                             }
-                            console.log('自动选中文章:', this.activeArticle ? this.activeArticle.title : '无');
-                            // 给 renderContent 里的图片点击用
-                            window.__showPreview = (src) => {
-                                this.previewImage = src;
-                                this.showPreview = true;
+                            console.log('自动选中文章:', self.activeArticle ? self.activeArticle.title : '无');
+                            window.__showPreview = function (src) {
+                                self.previewImage = src;
+                                self.showPreview = true;
                             };
-                            // 文章渲染后，给所有文章内的图片绑定点击放大
-                            this.$nextTick(() => {
-                                this.bindArticleImageClicks();
-                                this.stopLoading();
+                            self.$nextTick(function () {
+                                self.bindArticleImageClicks();
+                                self.stopLoading();
                             });
                         })
-                        .catch(err => {
+                        .catch(function (err) {
                             console.error('加载文章失败:', err);
-                            this.articles = [];
-                            this.activeArticle = null;
-                            this.failLoading('页面加载失败，请稍后重试');
+                            self.articles = [];
+                            self.activeArticle = null;
+                            self.failLoading('页面加载失败，请稍后重试');
                         });
                 },
 
-                // 渲染文章内容：支持占位符 [img0]、[img1:left]、[img2:right]、[img3:center]、[img0,img1:parallel]
-                renderContent(article) {
+                renderContent: function (article) {
                     console.log('renderContent called with:', article);
                     if (!article || !article.content) {
-                        console.log('Article or content is empty:', { article: !!article, content: article?.content });
+                        console.log('Article or content is empty:', article);
                         return '';
                     }
 
-                    const images = Array.isArray(article.images) ? article.images : [];
-                    let html = article.content;
+                    var images = Array.isArray(article.images) ? article.images : [];
+                    var html = article.content;
                     console.log('Processing content:', html.substring(0, 100) + '...');
                     console.log('Images available:', images);
 
-                    // 若内容非HTML（无标签），才将换行符转换为 <br>，避免和段落/列表重复间距
                     if (!/[<][a-zA-Z]+[\s>]/.test(html)) {
                         html = html.replace(/\n/g, '<br>');
                     }
 
-                    // 首先处理并行图片 [img0,img1:parallel] 或 [img0,img1,img2:parallel]
-                    html = html.replace(/\[((?:img\d+,?)+):parallel\]/g, (match, imgList) => {
+                    html = html.replace(/\[((?:img\d+,?)+):parallel\]/g, function (match, imgList) {
                         console.log('Processing parallel images:', match, imgList);
-                        const indices = imgList.split(',').map(s => parseInt(s.trim().replace('img', ''), 10));
-                        const validImages = indices.filter(idx => !Number.isNaN(idx) && images[idx]).map(idx => images[idx]);
+                        var indices = imgList.split(',').map(function (s) {
+                            return parseInt(s.trim().replace('img', ''), 10);
+                        });
+                        var validImages = indices.filter(function (idx) {
+                            return !Number.isNaN(idx) && images[idx];
+                        }).map(function (idx) {
+                            return images[idx];
+                        });
 
                         console.log('Valid images:', validImages);
 
                         if (validImages.length === 0) return '';
 
-                        let gridClass = '';
+                        var gridClass = '';
                         if (validImages.length === 2) {
                             gridClass = 'grid-cols-2';
                         } else if (validImages.length === 3) {
@@ -727,26 +752,24 @@
                             gridClass = 'grid-cols-2';
                         }
 
-                        const imageElements = validImages.map(src =>
-                            `<div><img src="${src}" alt="文章图片" style="cursor:pointer" onclick="window.__showPreview('${src}')" /></div>`
-                        ).join('');
+                        var imageElements = validImages.map(function (src) {
+                            return '<div><img src="' + src + '" alt="文章图片" style="cursor:pointer" onclick="window.__showPreview(\'' + src + '\')" /></div>';
+                        }).join('');
 
-                        const result = `<div class="grid ${gridClass} gap-4">${imageElements}</div>`;
+                        var result = '<div class="grid ' + gridClass + ' gap-4">' + imageElements + '</div>';
                         console.log('Generated HTML:', result);
                         return result;
                     });
 
-                    // 然后处理单个图片 [imgN[:pos]]，pos 可为 left|right|center
-                    html = html.replace(/\[img(\d+)(?::(left|right|center))?\]/g, (match, indexStr, pos) => {
-                        const idx = parseInt(indexStr, 10);
-                        const src = images[idx];
+                    html = html.replace(/\[img(\d+)(?::(left|right|center))?\]/g, function (match, indexStr, pos) {
+                        var idx = parseInt(indexStr, 10);
+                        var src = images[idx];
                         if (!src) {
                             return '';
                         }
 
-                        const position = pos || 'center';
-                        let wrapperStyle = '';
-                        let imgClass = 'max-w-full h-auto rounded';
+                        var position = pos || 'center';
+                        var wrapperStyle = '';
 
                         if (position === 'left') {
                             wrapperStyle = 'text-align:left;';
@@ -756,135 +779,137 @@
                             wrapperStyle = 'text-align:center;';
                         }
 
-                        return `<div style="${wrapperStyle}">
-                            <img src="${src}"
-                                 alt="文章图片"
-                                 class="max-w-full h-auto rounded shadow-sm cursor-pointer"
-                                 style="max-height: 16rem;"
-                                 onclick="window.__showPreview('${src}')"/>
-                        </div>`;
+                        return '<div style="' + wrapperStyle + '">\n' +
+                            '    <img src="' + src + '"\n' +
+                            '         alt="文章图片"\n' +
+                            '         class="max-w-full h-auto rounded shadow-sm cursor-pointer"\n' +
+                            '         style="max-height: 16rem; aspect-ratio: 4/3; object-fit: cover;"\n' +
+                            '         loading="lazy"\n' +
+                            '         onclick="window.__showPreview(\'' + src + '\')"/>\n' +
+                            '</div>';
                     });
 
-                    console.log('Final HTML:', html.substring(0, 200) + '...');
                     return html;
                 },
 
-                // 统一为文章内容中的<img>绑定点击放大
-                bindArticleImageClicks() {
-                    // 确保预览函数存在
+                bindArticleImageClicks: function () {
+                    var self = this;
                     if (!window.__showPreview) {
-                        window.__showPreview = (src) => {
-                            this.previewImage = src;
-                            this.showPreview = true;
+                        window.__showPreview = function (src) {
+                            self.previewImage = src;
+                            self.showPreview = true;
                         };
                     }
-                    const imgs = document.querySelectorAll('.article-content img');
-                    imgs.forEach(img => {
+                    var imgs = document.querySelectorAll('.article-content img');
+                    Array.prototype.forEach.call(imgs, function (img) {
                         img.style.cursor = 'pointer';
-                        img.onclick = () => window.__showPreview(img.src);
+                        img.onclick = function () { window.__showPreview(img.src); };
                     });
                 },
 
-                // 导航到站内其它地址（展示过场）
-                navigateTo(url) {
-                    this.startLoading('正在跳转，请稍候…', () => this.navigateTo(url));
-                    setTimeout(() => { window.location.href = url; }, 50);
+                navigateTo: function (url) {
+                    var self = this;
+                    self.startLoading('正在跳转，请稍候…', function () { self.navigateTo(url); });
+                    setTimeout(function () { window.location.href = url; }, 50);
                 },
 
-                // 过场控制
-                startLoading(message = '正在加载，请稍候…', retryFn = null) {
+                startLoading: function (message, retryFn) {
+                    if (message === undefined || message === null) {
+                        message = '正在加载，请稍候…';
+                    }
                     this.loadingMessage = message;
                     this.isLoading = true;
                     this.loadError = false;
                     this.loadErrorMsg = '';
-                    this.lastAction = retryFn;
+                    this.lastAction = retryFn || null;
                     if (this._loadingTimer) clearTimeout(this._loadingTimer);
-                    this._loadingTimer = setTimeout(() => {
-                        this.failLoading('加载超时（>60秒），请检查网络或稍后重试');
+                    var self = this;
+                    this._loadingTimer = setTimeout(function () {
+                        self.failLoading('加载超时（>60秒），请检查网络或稍后重试');
                     }, 60000);
                 },
-                stopLoading() {
+
+                stopLoading: function () {
                     if (this._loadingTimer) clearTimeout(this._loadingTimer);
                     this._loadingTimer = null;
                     this.isLoading = false;
                     this.loadError = false;
                     this.loadErrorMsg = '';
                 },
-                failLoading(msg) {
+
+                failLoading: function (msg) {
                     if (this._loadingTimer) clearTimeout(this._loadingTimer);
                     this._loadingTimer = null;
                     this.isLoading = true;
                     this.loadError = true;
                     this.loadErrorMsg = msg || '加载失败';
                 },
-                retryLastAction() {
+
+                retryLastAction: function () {
                     if (typeof this.lastAction === 'function') {
-                        const fn = this.lastAction;
+                        var fn = this.lastAction;
                         this.startLoading(this.loadingMessage, fn);
-                        this.$nextTick(() => fn());
+                        this.$nextTick(function () { fn(); });
                     }
                 },
 
-                // 计算未在正文使用的图片
-                getUnusedImages(article) {
+                getUnusedImages: function (article) {
                     if (!article) return [];
-                    const images = Array.isArray(article.images) ? article.images : [];
-                    const content = article.content || '';
+                    var images = Array.isArray(article.images) ? article.images : [];
+                    var content = article.content || '';
+                    var used = {};
 
-                    const used = new Set();
-
-                    // 匹配单个图片占位符 [imgN[:pos]]
-                    const singleImgRegex = /\[img(\d+)(?::(left|right|center))?\]/g;
-                    let m;
+                    var singleImgRegex = /\[img(\d+)(?::(left|right|center))?\]/g;
+                    var m;
                     while ((m = singleImgRegex.exec(content)) !== null) {
-                        const idx = parseInt(m[1], 10);
-                        if (!Number.isNaN(idx)) used.add(idx);
+                        var idx = parseInt(m[1], 10);
+                        if (!Number.isNaN(idx)) used[idx] = true;
                     }
 
-                    // 匹配并行图片占位符 [img0,img1:parallel]
-                    const parallelImgRegex = /\[((?:img\d+,?)+):parallel\]/g;  // 修复此处
+                    var parallelImgRegex = /\[((?:img\d+,?)+):parallel\]/g;
                     while ((m = parallelImgRegex.exec(content)) !== null) {
-                        const indices = m[1].split(',').map(s => {
-                            const imgNum = s.trim().replace('img', '');  // 提取数字部分
+                        var indices = m[1].split(',').map(function (s) {
+                            var imgNum = s.trim().replace('img', '');
                             return parseInt(imgNum, 10);
                         });
-                        indices.forEach(idx => {
-                            if (!Number.isNaN(idx)) used.add(idx);
+                        indices.forEach(function (idx) {
+                            if (!Number.isNaN(idx)) used[idx] = true;
                         });
                     }
 
-                    return images.filter((_, idx) => !used.has(idx));
+                    return images.filter(function (_, idx) { return !used[idx]; });
                 },
 
-                // 🎯 加载所有文章
-                loadAllArticles() {
+                loadAllArticles: function () {
+                    var self = this;
                     axios.get('/articles/')
-                        .then(res => {
-                            this.allArticles = res.data;
-                            console.log('所有文章加载成功:', this.allArticles.length, '篇');
+                        .then(function (res) {
+                            self.allArticles = res.data;
+                            console.log('所有文章加载成功:', self.allArticles.length, '篇');
                         })
-                        .catch(err => {
+                        .catch(function (err) {
                             console.error('加载文章统计失败:', err);
-                            this.allArticles = [];
+                            self.allArticles = [];
                         });
                 }
             },
 
-            // 组件挂载时，如果不是首页则加载对应文章
-            mounted() {
-                // 🎯 开场动画自动隐藏 - 简化时间
-                setTimeout(() => {
-                    this.showIntro = false;
+            mounted: function () {
+                var self = this;
+                setTimeout(function () {
+                    self.showIntro = false;
                 }, 2000);
 
-                // 加载所有文章用于统计
-                this.loadAllArticles();
+                self.loadAllArticles();
 
-                if (this.activeTab !== '首页') {
-                    this.loadArticlesByCategory(this.activeTab);
+                if (self.activeTab !== '首页') {
+                    self.loadArticlesByCategory(self.activeTab);
                 }
             }
-    });
+        });
+        } else {
+            console.error('Vue 未加载成功，请确认 /static/js/vue.min.js 是否存在且可访问。');
+        }
     </script>
 </body>
 </html>
